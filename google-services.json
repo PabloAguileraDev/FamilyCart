@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "624955667465",
+    "project_id": "familycart-e62be",
+    "storage_bucket": "familycart-e62be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:624955667465:android:be703d4ae6212a475a34d8",
+        "android_client_info": {
+          "package_name": "com.pablo.familycart2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaZGpchwachmaRxVWxHN5I8Z7aIn2yMa8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
