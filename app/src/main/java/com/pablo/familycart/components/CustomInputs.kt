@@ -100,6 +100,7 @@ fun CustomButton(
     ) {
         Text(
             text = text,
+            maxLines = 1,
             style = TextStyle(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,

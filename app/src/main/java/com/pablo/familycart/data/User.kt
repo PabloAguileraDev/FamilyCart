@@ -2,9 +2,9 @@ package com.pablo.familycart.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.pablo.familycart.models.familyData
+import com.pablo.familycart.models.FamilyData
 import kotlinx.coroutines.tasks.await
-import com.pablo.familycart.models.userData
+import com.pablo.familycart.models.UserData
 
 
 class User(
@@ -33,13 +33,21 @@ class User(
             // Crea el usuario en firebase
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val user = authResult.user ?: return Result.failure(Exception("Error al registrar el usuario"))
+            val avatarList = listOf(
+                "pan",
+                "zanahoria",
+                "leche",
+                "chocolate"
+            )
+            val randomAvatar = avatarList.random()
 
             // Usuario a guardar en firebase
-            val userData = userData(
+            val userData = UserData(
                 uid = user.uid,
                 nombre = nombre,
                 apellidos = apellidos,
-                email = email
+                email = email,
+                foto = randomAvatar
             )
 
             // Registra al usuario en firebase
@@ -55,7 +63,7 @@ class User(
      * Método para guardar los datos del usuario en Firebase
      */
     fun saveUserData(
-        userData: userData,
+        userData: UserData,
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
     ): Result<Unit> {
@@ -81,20 +89,21 @@ class User(
     /**
      * Crea un nuevo grupo y asigna al usuario actual como dueño y miembro
      */
-    suspend fun createGroup(familyCode: String, password: String): Result<Unit> {
+    suspend fun createGroup(password: String): Result<Unit> {
         val user = auth.currentUser ?: return Result.failure(Exception("Usuario no autenticado"))
 
         return try {
-            val group = familyData(
-                code = familyCode,
+            val code = generateUniqueFamilyCode(db)
+
+            val group = FamilyData(
+                code = code,
+                password = password,
                 ownerId = user.uid
             )
 
-            // Crear grupo
             val groupRef = db.collection("groups").document()
             groupRef.set(group).await()
 
-            // Asignar grupo al usuario
             db.collection("users").document(user.uid).update("familyId", groupRef.id).await()
 
             Result.success(Unit)
@@ -102,6 +111,7 @@ class User(
             Result.failure(e)
         }
     }
+
 
     /**
      * Unirse a un grupo con un código
@@ -131,33 +141,103 @@ class User(
         }
     }
 
+    suspend fun generateUniqueFamilyCode(db: FirebaseFirestore): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        var code: String
+        var exists: Boolean
+
+        do {
+            code = (1..4)
+                .map { chars.random() }
+                .joinToString("")
+
+            val snapshot = db.collection("groups")
+                .whereEqualTo("code", code)
+                .get()
+                .await()
+
+            exists = !snapshot.isEmpty
+        } while (exists)
+
+        return code
+    }
+
+
     /**
-     * Agrega un número entero a la lista compartida del grupo
+     * Crea una nueva lista dentro del grupo del usuario actual
      */
-    suspend fun addNumberToGroupList(productId: Int, quantity: Int, note: String): Result<Unit> {
+    suspend fun createList(listName: String): Result<Unit> {
         val user = auth.currentUser ?: return Result.failure(Exception("Usuario no autenticado"))
 
         return try {
-            // Obtener groupId del usuario
             val userDoc = db.collection("users").document(user.uid).get().await()
-            val groupId = userDoc.getString("familyId") ?: return Result.failure(Exception("El usuario no pertenece a un grupo"))
+            val familyId = userDoc.getString("familyId") ?: return Result.failure(Exception("Usuario sin grupo"))
 
-            val numberData = mapOf(
-                "productId" to productId,
-                "quantity" to quantity,
-                "note" to note,
-                "addedBy" to user.uid,
+            val listData = mapOf(
+                "name" to listName,
+                "createdBy" to user.uid,
                 "timestamp" to com.google.firebase.Timestamp.now()
             )
 
-            // Agregar número a la subcolección del grupo
-            db.collection("groups").document(groupId)
-                .collection("list").add(numberData).await()
+            db.collection("groups").document(familyId)
+                .collection("lists")
+                .add(listData)
+                .await()
 
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+    /**
+     * Agrega un producto a una lista específica del grupo
+     */
+    suspend fun addProductToList(listId: String, productId: String): Result<Unit> {
+        val user = auth.currentUser ?: return Result.failure(Exception("Usuario no autenticado"))
+
+        return try {
+            val userDoc = db.collection("users").document(user.uid).get().await()
+            val familyId = userDoc.getString("familyId") ?: return Result.failure(Exception("Usuario sin grupo"))
+
+            val productData = mapOf(
+                "productId" to productId,
+                "addedBy" to user.uid,
+                "timestamp" to com.google.firebase.Timestamp.now()
+            )
+
+            db.collection("groups").document(familyId)
+                .collection("lists").document(listId)
+                .collection("items").add(productData).await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Elimina un producto por su ID de una lista específica
+     */
+    suspend fun removeProductFromList(listId: String, productId: String): Result<Unit> {
+        val user = auth.currentUser ?: return Result.failure(Exception("Usuario no autenticado"))
+
+        return try {
+            val userDoc = db.collection("users").document(user.uid).get().await()
+            val familyId = userDoc.getString("familyId") ?: return Result.failure(Exception("Usuario sin grupo"))
+
+            val itemsRef = db.collection("groups").document(familyId)
+                .collection("lists").document(listId)
+                .collection("items")
+
+            val snapshot = itemsRef.whereEqualTo("productId", productId).get().await()
+            snapshot.documents.forEach { it.reference.delete().await() }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 }

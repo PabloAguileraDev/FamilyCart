@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pablo.familycart2"
+    namespace = "com.pablo.familycart"
     compileSdk = 35
 
     defaultConfig {

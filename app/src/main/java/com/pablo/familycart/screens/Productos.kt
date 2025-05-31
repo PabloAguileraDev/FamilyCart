@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import com.pablo.familycart.R
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -104,8 +107,8 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                             text = "${previousPrice.trim()} €",
                                             fontSize = 16.sp,
                                             color = Color.Red,
-                                            style = androidx.compose.ui.text.TextStyle(
-                                                textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
+                                            style = TextStyle(
+                                                textDecoration = TextDecoration.LineThrough
                                             )
                                         )
                                     }

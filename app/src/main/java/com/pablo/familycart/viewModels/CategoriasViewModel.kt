@@ -2,7 +2,7 @@ package com.pablo.familycart.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pablo.familycart.utils.apiUtils.Category
+import com.pablo.familycart.models.*
 import com.pablo.familycart.utils.apiUtils.MercadonaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

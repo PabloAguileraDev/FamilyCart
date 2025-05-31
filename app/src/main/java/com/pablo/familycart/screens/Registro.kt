@@ -68,7 +68,7 @@ fun RegistroScreen(navController: NavController, viewModel: RegistroViewModel){
                 viewModel.registerUser(
                     onSuccess = {
                         println("Registro exitoso")
-                        // Navegación home
+                        navController.navigate(Login)
                     },
                     onFailure = { error ->
                         println("Error de registro: $error")

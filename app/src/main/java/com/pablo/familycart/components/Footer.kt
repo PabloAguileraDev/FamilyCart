@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.pablo.familycart.R
 import androidx.navigation.NavController
 import com.pablo.familycart.navigation.Categorias
 import com.pablo.familycart.navigation.Familia

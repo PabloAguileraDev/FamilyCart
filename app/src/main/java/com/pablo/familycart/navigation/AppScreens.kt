@@ -19,3 +19,6 @@ data class DetallesProducto(val productoId: Int)
 
 @Serializable
 object Familia
+
+@Serializable
+object Perfil

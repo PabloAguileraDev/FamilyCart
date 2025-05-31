@@ -1,74 +1,8 @@
 package com.pablo.familycart.utils.apiUtils
 
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.pablo.familycart.models.*
 import retrofit2.http.GET
 import retrofit2.http.Path
-
-// Una subcategoría como "Aceite, vinagre y sal"
-data class SubCategory(
-    val id: Int,
-    val name: String,
-    val order: Int,
-    val layout: Int,
-    val published: Boolean,
-    val is_extended: Boolean
-)
-
-// Una categoría como "Aceite, especias y salsas"
-data class Category(
-    val id: Int,
-    val name: String,
-    val order: Int,
-    val is_extended: Boolean,
-    val categories: List<SubCategory>
-)
-
-// La respuesta completa del endpoint /categories
-data class CategoriesResponse(
-    val count: Int,
-    val next: String?,
-    val previous: String?,
-    val results: List<Category>
-)
-
-// Conexión a la API
-object ApiClient {
-    val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://tienda.mercadona.es/api/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-}
-
-data class ProductResponse(
-    val id: Int,
-    val name: String,
-    val categories: List<SubCategoryWithProducts>
-)
-
-data class SubCategoryWithProducts(
-    val id: Int,
-    val name: String,
-    val products: List<Product>
-)
-
-data class Product(
-    val id: Int,
-    val slug: String,
-    val display_name: String,
-    val thumbnail: String,
-    val packaging: String,
-    val price_instructions: PriceInstructions
-)
-
-data class PriceInstructions(
-    val unit_price: String,
-    val size_format: String,
-    val unit_size: String,
-    val reference_format: String,
-    val previous_unit_price: String?
-)
-
 
 // Petición a la API
 interface MercadonaApiService {

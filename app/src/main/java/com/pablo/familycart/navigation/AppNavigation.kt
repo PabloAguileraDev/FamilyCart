@@ -14,12 +14,14 @@ import com.pablo.familycart.screens.LoginScreen
 import com.pablo.familycart.screens.CategoriasScreen
 import com.pablo.familycart.screens.DetallesProductoScreen
 import com.pablo.familycart.screens.FamiliaScreen
+import com.pablo.familycart.screens.PerfilScreen
 import com.pablo.familycart.screens.ProductosScreen
 import com.pablo.familycart.screens.RegistroScreen
 import com.pablo.familycart.viewModels.LoginViewModel
 import com.pablo.familycart.viewModels.CategoriasViewModel
 import com.pablo.familycart.viewModels.DetallesProductoViewModel
 import com.pablo.familycart.viewModels.FamiliaViewModel
+import com.pablo.familycart.viewModels.PerfilViewModel
 import com.pablo.familycart.viewModels.ProductosViewModel
 import com.pablo.familycart.viewModels.RegistroViewModel
 
@@ -54,6 +56,7 @@ fun AppNavigation(auth: FirebaseAuth, db: FirebaseFirestore){
             DetallesProductoScreen(navController = navController, viewModel = viewModel)
         }
         composable<Familia> { FamiliaScreen(navController, viewModel = FamiliaViewModel()) }
+        composable<Perfil> { PerfilScreen(navController, viewModel = PerfilViewModel()) }
     }
 }
 
