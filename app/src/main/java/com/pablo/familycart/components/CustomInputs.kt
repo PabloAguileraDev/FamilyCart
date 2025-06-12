@@ -1,5 +1,6 @@
 package com.pablo.familycart.components
 
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +45,8 @@ fun CustomText(
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.headlineMedium,
     fontSize: TextUnit = 23.sp,
-    fontWeight: FontWeight = FontWeight.SemiBold
+    fontWeight: FontWeight = FontWeight.SemiBold,
+    textAlign: TextAlign? = null
 ) {
     Text(
         text = text,
@@ -51,6 +54,7 @@ fun CustomText(
         fontWeight = fontWeight,
         style = style,
         color = color,
+        textAlign = textAlign,
         modifier = modifier
     )
 }
@@ -61,6 +65,7 @@ fun CustomTextField(
     onValueChange: (String) -> Unit,
     label: String,
     isPassword: Boolean = false,
+    isError: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
@@ -70,10 +75,10 @@ fun CustomTextField(
         textStyle = TextStyle(
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = Verde
         ),
         modifier = modifier.width(300.dp),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        isError = isError,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Verde,
@@ -93,7 +98,7 @@ fun CustomButton(
     Button(
         onClick = onClick,
         modifier = modifier
-            .width(150.dp)
+            .defaultMinSize(minWidth = 150.dp)
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(Verde)

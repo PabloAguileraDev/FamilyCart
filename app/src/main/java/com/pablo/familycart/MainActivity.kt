@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         db = FirebaseFirestore.getInstance()
 
         setContent {
-            FamilyCartTheme {
+            FamilyCartTheme (darkTheme = false) {
                 AppNavigation(auth, db)
             }
         }

@@ -8,22 +8,33 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import com.pablo.familycart.R
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.pablo.familycart.components.CustomButton
 import com.pablo.familycart.components.CustomText
+import com.pablo.familycart.components.CustomTextField
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
 import com.pablo.familycart.navigation.DetallesProducto
@@ -33,6 +44,14 @@ import com.pablo.familycart.viewModels.ProductosViewModel
 @Composable
 fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel) {
     val subcatsConProductos by viewModel.subcatsConProductos.collectAsState()
+
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedProductId by remember { mutableStateOf<String?>(null) }
+
+    val listasDisponibles by viewModel.listas.collectAsState()
+    var showAlreadyExistsDialog by remember { mutableStateOf(false) }
+
+    var showNoFamilyDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -60,7 +79,7 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {navController.navigate(DetallesProducto(producto.id))}
+                            .clickable { navController.navigate(DetallesProducto(producto.id)) }
                             .padding(8.dp)
                             .background(Color.White)
                             .border(2.dp, Verde, RoundedCornerShape(10.dp))
@@ -73,19 +92,39 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                             modifier = Modifier
                                 .size(100.dp)
                                 .padding(end = 12.dp)
+                                .align(Alignment.CenterVertically)
                         )
 
                         Column(
-                            modifier = Modifier
-                                .weight(1f)
+                            modifier = Modifier.weight(1f)
                         ) {
                             CustomText(text = producto.display_name, fontSize = 20.sp)
 
+                            val packaging = producto.packaging ?: ""
+                            val unitSize = producto.price_instructions.unit_size
+                            val sizeFormat = producto.price_instructions.size_format ?: ""
+                            val unitName = producto.price_instructions.unit_name
+                            val packSize = producto.price_instructions.pack_size
+                            val totalUnits = producto.price_instructions.total_units
+
+                            val displayUnidades = when {
+                                producto.price_instructions.is_pack && totalUnits != null && packSize != null && !unitName.isNullOrBlank() -> {
+                                    "$totalUnits $unitName x ${packSize}${sizeFormat}"
+                                }
+                                !packaging.isNullOrBlank() && unitSize != null -> {
+                                    "$packaging • ${unitSize}${sizeFormat}"
+                                }
+                                else -> {
+                                    ""
+                                }
+                            }
+
                             CustomText(
-                                text = "${producto.packaging} • ${producto.price_instructions.unit_size}${producto.price_instructions.size_format}",
+                                text = displayUnidades,
                                 fontSize = 18.sp,
                                 color = Color.Gray
                             )
+
 
                             Row(
                                 modifier = Modifier
@@ -107,9 +146,7 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                             text = "${previousPrice.trim()} €",
                                             fontSize = 16.sp,
                                             color = Color.Red,
-                                            style = TextStyle(
-                                                textDecoration = TextDecoration.LineThrough
-                                            )
+                                            style = TextStyle(textDecoration = TextDecoration.LineThrough)
                                         )
                                     }
                                 }
@@ -120,7 +157,12 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                     modifier = Modifier
                                         .size(30.dp)
                                         .clickable {
-                                            // Añadir producto a la lista
+                                            if (listasDisponibles.isEmpty()) {
+                                                showNoFamilyDialog = true
+                                            } else {
+                                                selectedProductId = producto.id
+                                                showDialog = true
+                                            }
                                         },
                                     contentScale = ContentScale.Crop
                                 )
@@ -128,9 +170,210 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                         }
                     }
                 }
-
             }
         }
+
         Footer(navController, home = R.drawable.home_fill)
+
+        AddProductDialog(
+            show = showDialog,
+            onDismiss = { showDialog = false },
+            onAdd = { listId, cantidad, nota ->
+                selectedProductId?.let { productId ->
+                    viewModel.addProductToList(listId, productId, nota, cantidad) { result ->
+                        if (result.isSuccess) {
+                            println("Producto añadido correctamente.")
+                        } else {
+                            val msg = result.exceptionOrNull()?.message ?: ""
+                            if (msg.contains("ya está en la lista", ignoreCase = true)) {
+                                showAlreadyExistsDialog = true
+                            } else {
+                                println("Error al añadir: $msg")
+                            }
+                        }
+                    }
+                }
+            },
+            listas = listasDisponibles
+        )
+
+        if (showAlreadyExistsDialog) {
+            AlertDialog(
+                onDismissRequest = { showAlreadyExistsDialog = false },
+                confirmButton = {
+                    CustomButton(
+                        text = "Cerrar",
+                        onClick = { showAlreadyExistsDialog = false }
+                    )
+                },
+                title = {
+                    CustomText(text = "Producto ya añadido", color = Verde, fontSize = 28.sp)
+                },
+                text = {
+                    CustomText(text = "Este producto ya está en la lista seleccionada.", fontSize = 22.sp)
+                },
+                containerColor = Color.White
+            )
+        }
+
+        if (showNoFamilyDialog) {
+            AlertDialog(
+                onDismissRequest = { showNoFamilyDialog = false },
+                confirmButton = {
+                    CustomButton(
+                        text = "Entendido",
+                        onClick = { showNoFamilyDialog = false }
+                    )
+                },
+                title = {
+                    CustomText(text = "No se pueden añadir productos", color = Verde)
+                },
+                text = {
+                    CustomText(
+                        text = "Para añadir productos tienes que pertenecer a una familia, y recuerda crear alguna lista!",
+                        fontSize = 20.sp
+                    )
+                },
+                containerColor = Color.White
+            )
+        }
+
     }
 }
+
+
+@Composable
+fun AddProductDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onAdd: (listId: String, cantidad: Int, nota: String) -> Unit,
+    listas: List<Pair<String, String>>
+) {
+    if (!show) return
+
+    var selectedListIndex by remember { mutableStateOf(0) }
+    var cantidad by remember { mutableStateOf(1) }
+    var nota by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .padding(24.dp)
+                .fillMaxWidth()
+        ) {
+            CustomText("Añadir producto", fontSize = 30.sp)
+
+            Spacer(Modifier.height(16.dp))
+
+            CustomText("Selecciona una lista", fontSize = 20.sp)
+            Spacer(Modifier.height(8.dp))
+            DropdownMenuBox(
+                options = listas.map { it.second },
+                selectedIndex = selectedListIndex,
+                onSelectedIndexChange = { selectedListIndex = it }
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            CustomText("Cantidad", fontSize = 20.sp)
+            Spacer(Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CustomButton(
+                    text = "-",
+                    onClick = { if (cantidad > 1) cantidad-- },
+                    modifier = Modifier.size(50.dp)
+                )
+                Spacer(Modifier.width(20.dp))
+                CustomText("$cantidad", fontSize = 22.sp)
+                Spacer(Modifier.width(20.dp))
+                CustomButton(
+                    text = "+",
+                    onClick = { cantidad++ },
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            CustomText("Nota (opcional)", fontSize = 20.sp)
+            Spacer(Modifier.height(8.dp))
+            CustomTextField(
+                value = nota,
+                onValueChange = { nota = it },
+                label = "Escribe una nota",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                CustomButton(
+                    text = "Cancelar",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(12.dp))
+                CustomButton(
+                    text = "Añadir",
+                    onClick = {
+                        val listId = listas[selectedListIndex].first
+                        onAdd(listId, cantidad, nota)
+                        onDismiss()
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun DropdownMenuBox(
+    options: List<String>,
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var buttonWidth by remember { mutableStateOf(0) }
+
+    Box {
+        CustomButton(
+            text = options[selectedIndex],
+            onClick = { expanded = true },
+            modifier = Modifier
+                .onGloballyPositioned { coordinates ->
+                    buttonWidth = coordinates.size.width
+                }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.width(with(LocalDensity.current) { buttonWidth.toDp() }).background(Color.White)
+        ) {
+            options.forEachIndexed { index, option ->
+                DropdownMenuItem(
+                    text = {
+                        CustomText(option)
+                    },
+                    onClick = {
+                        onSelectedIndexChange(index)
+                        expanded = false
+                    },
+                    modifier = Modifier.background(Color.White)
+                )
+            }
+        }
+    }
+}
+
+

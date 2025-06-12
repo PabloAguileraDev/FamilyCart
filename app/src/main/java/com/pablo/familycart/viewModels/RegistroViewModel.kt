@@ -19,6 +19,13 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
 
+    var nombreError by mutableStateOf(false)
+    var apellidosError by mutableStateOf(false)
+    var emailError by mutableStateOf(false)
+    var passwordError by mutableStateOf(false)
+    var confirmPasswordError by mutableStateOf(false)
+
+
     private val userRepository = User(auth, db)
 
     /**
@@ -53,6 +60,8 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
                 onFailure = { onFailure(it.message ?: "Error en el registro")}
             )
         }
+
+
     }
 
     /**
@@ -64,15 +73,42 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
         email: String,
         password: String,
         confirmPassword: String
-    ): Pair<Boolean, String>  {
+    ): Pair<Boolean, String> {
+        nombreError = nombre.isBlank()
+        apellidosError = apellidos.isBlank()
+        emailError = !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        passwordError = password.length < 8
+        confirmPasswordError = password != confirmPassword
+
         return when {
-            nombre.isEmpty() -> Pair(false, "El nombre no puede estar vacío")
-            apellidos.isEmpty() -> Pair(false, "Los apellidos no pueden estar vacíos")
-            email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email)
-                .matches() -> Pair(false,"Ingresa un email válido.")
-            password.length < 8 -> Pair(false, "La contraseña debe tener al menos 8 caracteres.")
-            password != confirmPassword -> Pair(false, "Las contraseñas no coinciden.")
+            nombreError -> Pair(false, "El nombre no puede estar vacío")
+            apellidosError -> Pair(false, "Los apellidos no pueden estar vacíos")
+            emailError -> Pair(false, "El email no es válido")
+            passwordError -> Pair(false, "La contraseña debe tener como mínimo 8 caracteres y contener al menos una mayúscula, una minúscula, un número y un carácter especial")
+            confirmPasswordError -> Pair(false, "Las contraseñas no coinciden")
             else -> Pair(true, "")
         }
     }
+
+    fun validarNombre() {
+        nombreError = nombre.isBlank()
+    }
+
+    fun validarApellidos() {
+        apellidosError = apellidos.isBlank()
+    }
+
+    fun validarEmail() {
+        emailError = !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    fun validarPassword() {
+        passwordError = !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$"))
+    }
+
+    fun validarConfirmPassword() {
+        confirmPasswordError = confirmPassword != password
+    }
+
+
 }

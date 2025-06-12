@@ -28,6 +28,13 @@ import com.pablo.familycart.viewModels.CategoriasViewModel
 fun CategoriasScreen(navController: NavController, viewModel: CategoriasViewModel) {
     val categorias by viewModel.categorias.collectAsState()
     val expandedCategoryIds by viewModel.expandedCategoryIds.collectAsState()
+    var showContent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(categorias) {
+        if (categorias.isNotEmpty()) {
+            showContent = true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -37,61 +44,66 @@ fun CategoriasScreen(navController: NavController, viewModel: CategoriasViewMode
     ) {
         Header(navController)
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(1f)
-                .padding(8.dp)
-        ) {
-            items(categorias) { categoria ->
-                Column {
-                    // Categoría principal
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, shape = RoundedCornerShape(12.dp))
-                            .border(2.dp, Verde, shape = RoundedCornerShape(12.dp))
-                            .clickable { viewModel.toggleCategoriaExpandida(categoria.id) }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CustomText(text = categoria.name, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.weight(1f))
-                        Image(
-                            painter = painterResource(id = com.pablo.familycart.R.drawable.arrow_right),
-                            contentDescription = "Desplegar",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+        if (categorias.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CustomText(text = "Cargando...", fontSize = 18.sp)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+            ) {
+                items(categorias) { categoria ->
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White, shape = RoundedCornerShape(12.dp))
+                                .border(2.dp, Verde, shape = RoundedCornerShape(12.dp))
+                                .clickable { viewModel.toggleCategoriaExpandida(categoria.id) }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CustomText(text = categoria.name, fontSize = 20.sp)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Image(
+                                painter = painterResource(id = R.drawable.arrow_right),
+                                contentDescription = "Desplegar",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
 
-                    // Subcategorías
-                    if (expandedCategoryIds.contains(categoria.id)) {
-                        categoria.categories.forEach { sub ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        navController.navigate(Productos(subcatId = sub.id))
-                                    }
-                                    .padding(start = 32.dp, top = 6.dp, bottom = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CustomText(text = sub.name, fontSize = 18.sp)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Image(
-                                    painter = painterResource(id = com.pablo.familycart.R.drawable.arrow_right),
-                                    contentDescription = "Ir a productos",
-                                    modifier = Modifier.size(24.dp)
-                                )
+                        if (expandedCategoryIds.contains(categoria.id)) {
+                            categoria.categories.forEach { sub ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            navController.navigate(Productos(subcatId = sub.id))
+                                        }
+                                        .padding(start = 32.dp, top = 6.dp, bottom = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CustomText(text = sub.name, fontSize = 18.sp)
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Image(
+                                        painter = painterResource(id = R.drawable.arrow_right),
+                                        contentDescription = "Ir a productos",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
+
         Footer(navController, home = R.drawable.home_fill)
     }
 }
+
 

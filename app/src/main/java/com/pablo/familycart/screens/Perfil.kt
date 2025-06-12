@@ -26,7 +26,6 @@ import com.pablo.familycart.components.CustomTextField
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
 import com.pablo.familycart.navigation.Login
-import com.pablo.familycart.navigation.Perfil
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.PerfilViewModel
 
@@ -173,9 +172,6 @@ fun PerfilScreen(
                         )
                     }
                 }
-
-
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 CustomButton(onClick = { showDialog = true }, text = "Cerrar sesión")
@@ -190,8 +186,6 @@ fun PerfilScreen(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { CustomText("Cerrar sesión", color = Verde, fontSize = 26.sp) },
-            text = { CustomText("¿Estás seguro de que quieres cerrar sesión?", fontSize = 18.sp) },
             confirmButton = {
                 CustomButton(onClick = {
                     FirebaseAuth.getInstance().signOut()
@@ -200,14 +194,24 @@ fun PerfilScreen(
             },
             dismissButton = {
                 CustomButton(onClick = { showDialog = false }, text = "Cancelar")
-            }
+            },
+            title = {
+                CustomText("Cerrar sesión", color = Verde, fontSize = 26.sp)
+            },
+            text = {
+                CustomText("¿Estás seguro de que quieres cerrar sesión?", fontSize = 18.sp)
+            },
+            containerColor = Color.White
         )
+
     }
 
     if (showPhotoPicker) {
         AlertDialog(
             onDismissRequest = { showPhotoPicker = false },
-            title = { Text("Selecciona una foto") },
+            title = {
+                CustomText("Selecciona una foto")
+            },
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -241,8 +245,10 @@ fun PerfilScreen(
             confirmButton = {},
             dismissButton = {
                 CustomButton(onClick = { showPhotoPicker = false }, text = "Cancelar")
-            }
+            },
+            containerColor = Color.White
         )
+
     }
 
 }

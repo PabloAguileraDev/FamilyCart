@@ -1,6 +1,8 @@
 package com.pablo.familycart.models
 
 import android.os.Parcelable
+import com.google.errorprone.annotations.Keep
+import com.google.firebase.Timestamp
 import kotlinx.parcelize.Parcelize
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -65,6 +67,19 @@ data class ProductResponse(
     val categories: List<SubCategoryWithProducts>
 )
 
+// Producto de la lista en Firebase
+data class ProductoLista(
+    val productId: String,
+    val cantidad: Int = 1,
+    val nota: String? = null
+)
+
+//Producto Completo
+data class ProductoCompleto(
+    val producto: Product,
+    val productoLista: ProductoLista
+)
+
 // Los productos de una subcategoría
 data class SubCategoryWithProducts(
     val id: Int,
@@ -74,7 +89,7 @@ data class SubCategoryWithProducts(
 
 // Los detalles necesarios de un producto
 data class Product(
-    val id: Int,
+    val id: String,
     val slug: String,
     val display_name: String,
     val thumbnail: String,
@@ -88,5 +103,29 @@ data class PriceInstructions(
     val size_format: String,
     val unit_size: String,
     val reference_format: String,
-    val previous_unit_price: String?
+    val previous_unit_price: String?,
+    val unit_name: String,
+    val pack_size: String,
+    val total_units: String,
+    val is_pack: Boolean = false,
+)
+
+data class ProductoConDetalles(
+    val producto: Product,
+    val productoLista: ProductoLista
+)
+
+data class ProductoHistorial(
+    val productId: String = "",
+    val precio: Double = 0.0,
+    val cantidad: Int = 0,
+    val nombreProducto: String? = null,
+)
+
+data class HistorialCompra(
+    val id: String = "",
+    val nombre_lista: String = "",
+    val fecha: Timestamp = Timestamp.now(),
+    val precio_total: Double = 0.0,
+    val productos: List<ProductoHistorial> = emptyList()
 )

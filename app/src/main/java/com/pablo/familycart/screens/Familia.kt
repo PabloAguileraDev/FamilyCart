@@ -1,10 +1,13 @@
 package com.pablo.familycart.screens
 
+import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -12,25 +15,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
@@ -39,6 +46,7 @@ import com.pablo.familycart.R
 import com.pablo.familycart.components.CustomButton
 import com.pablo.familycart.components.CustomText
 import com.pablo.familycart.components.CustomTextField
+import com.pablo.familycart.components.CustomTitulo
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
 import com.pablo.familycart.data.User
@@ -50,27 +58,41 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun FamiliaScreen(navController: NavHostController, viewModel: FamiliaViewModel = viewModel()) {
+fun FamiliaScreen(
+    navController: NavHostController,
+    viewModel: FamiliaViewModel = viewModel()
+) {
     val hasFamily by viewModel.hasFamily.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.checkFamilyStatus()
+    }
 
     when (hasFamily) {
         null -> {
-            // Cargando
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            LoadingScreen()
         }
+
         false -> {
             NoFamilyUI(navController, viewModel)
         }
+
         true -> {
-            LaunchedEffect(Unit) {
-                //viewModel.loadFamilyDetails()
-            }
             FamilyDetails(navController, viewModel)
         }
     }
 }
+
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
 
 @Composable
 fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
@@ -93,7 +115,7 @@ fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomText(text = "No perteneces a ninguna familia", color = Verde)
+            CustomText(text = "No perteneces a ninguna familia")
             Spacer(modifier = Modifier.height(36.dp))
             CustomButton(text = "Crear familia", onClick = { showCreateDialog = true })
             Spacer(modifier = Modifier.height(16.dp))
@@ -125,19 +147,27 @@ fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
 fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Crear Familia") },
+        onDismissRequest = {
+            password = ""
+            onDismiss()
+        },
+        title = { CustomText("Crear Familia") },
         text = {
             Column {
-                CustomTextField(value = password, onValueChange = { password = it }, label = "Contraseña")
+                CustomTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Contraseña"
+                )
             }
         },
         confirmButton = {
             CustomButton(text = "Crear", onClick = {
                 val userHelper = User(FirebaseAuth.getInstance(), FirebaseFirestore.getInstance())
-                CoroutineScope(Dispatchers.IO).launch {
+                coroutineScope.launch {
                     val result = userHelper.createGroup(password)
                     withContext(Dispatchers.Main) {
                         if (result.isSuccess) {
@@ -152,8 +182,12 @@ fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
             })
         },
         dismissButton = {
-            CustomButton(text = "Cancelar", onClick = onDismiss)
-        }
+            CustomButton(text = "Cancelar", onClick = {
+                password = ""
+                onDismiss()
+            })
+        },
+        containerColor = Color.White
     )
 }
 
@@ -162,54 +196,57 @@ fun JoinFamilyDialog(onDismiss: () -> Unit, onJoined: () -> Unit) {
     var code by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Unirse a Familia") },
+        onDismissRequest = {
+            code = ""
+            password = ""
+            onDismiss()
+        },
+        title = { CustomText("Unirse a Familia") },
         text = {
-            Column {
-                OutlinedTextField(value = code, onValueChange = { code = it }, label = { Text("Código") })
-                OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Contraseña") })
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CustomTextField(value = code, onValueChange = { code = it }, label = "Código")
+                CustomTextField(value = password, onValueChange = { password = it }, label = "Contraseña")
             }
         },
         confirmButton = {
-            TextButton(onClick = {
+            CustomButton(text = "Unirse", onClick = {
                 val userHelper = User(FirebaseAuth.getInstance(), FirebaseFirestore.getInstance())
-                CoroutineScope(Dispatchers.IO).launch {
-                    val result = userHelper.joinGroupByCode(code, password)
+                coroutineScope.launch {
+                    val joinResult = userHelper.joinGroupByCode(code, password)
                     withContext(Dispatchers.Main) {
-                        if (result.isSuccess) {
-                            Toast.makeText(context, "Unido a la familia", Toast.LENGTH_SHORT).show()
+                        if (joinResult.isSuccess) {
+                            Toast.makeText(context, "Te has unido a la familia", Toast.LENGTH_SHORT).show()
                             onDismiss()
                             onJoined()
                         } else {
-                            Toast.makeText(context, result.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, joinResult.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
                         }
                     }
                 }
-            }) {
-                Text("Unirse")
-            }
+            })
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
+            CustomButton(text = "Cancelar", onClick = {
+                code = ""
+                password = ""
+                onDismiss()
+            })
+        },
+        containerColor = Color.White
     )
 }
 
+
 @Composable
 fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel = viewModel()) {
+    val context = LocalContext.current
+    var showLeaveDialog by remember { mutableStateOf(false) }
+    val miembros by viewModel.miembros.collectAsState()
+    val ownerNombre by viewModel.ownerNombre.collectAsState()
     val familyData by viewModel.familyData.collectAsState()
-    val members by viewModel.members.collectAsState()
-
-    if (familyData == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }
 
     Column(
         modifier = Modifier
@@ -224,23 +261,126 @@ fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel 
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomText(text = "Código: ${familyData?.code ?: "Cargando..."}", color = Verde)
-            Spacer(modifier = Modifier.height(8.dp))
+            familyData?.let {
+                CustomText("Código", color = Verde, fontSize = 28.sp)
+                Divider(modifier = Modifier.padding(vertical = 5.dp).width(88.dp), color = Verde)
+                CustomText(text = it.code, fontSize = 25.sp)
 
-            CustomText(text = "Dueño: ${familyData?.ownerId ?: "Cargando..."}", color = Verde)
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
-            CustomText(text = "Miembros:", color = Verde)
-            Spacer(modifier = Modifier.height(8.dp))
+                CustomText("Contraseña", color = Verde, fontSize = 28.sp)
+                Divider(modifier = Modifier.padding(vertical = 5.dp).width(140.dp), color = Verde)
+                CustomText(text = it.password, fontSize = 25.sp)
 
-            members.forEach { member ->
-                Text("- ${member.nombre} ${member.apellidos} (${member.email})")
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                CustomText("Creador", color = Verde, fontSize = 28.sp)
+                Divider(modifier = Modifier.padding(vertical = 5.dp).width(93.dp), color = Verde)
+                CustomText(text = ownerNombre ?: it.ownerId, fontSize = 25.sp)
+
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                CustomText("Miembros", color = Verde, fontSize = 28.sp)
+                Divider(modifier = Modifier.padding(vertical = 5.dp).width(125.dp), color = Verde)
+                miembros.forEach { miembro ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 6.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = getAvatarResId(miembro.foto)),
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier
+                                .size(45.dp)
+                                .clip(CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        CustomText(text = miembro.nombre, fontSize = 25.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            } ?: CustomText(text = "Cargando datos de la familia...")
+
+            Spacer(modifier = Modifier.height(32.dp))
+            CustomButton(text = "Salir de la familia", onClick = { showLeaveDialog = true })
+
+            if (showLeaveDialog) {
+                ConfirmLeaveFamilyDialog(
+                    onDismiss = { showLeaveDialog = false },
+                    onConfirm = {
+                        leaveFamily(context, viewModel)
+                        showLeaveDialog = false
+                    }
+                )
             }
         }
+
 
         Footer(navController, family = R.drawable.family_fill)
     }
 }
+
+fun getAvatarResId(nombreAvatar: String): Int {
+    return when (nombreAvatar) {
+        "pan" -> R.drawable.pan
+        "zanahoria" -> R.drawable.zanahoria
+        "leche" -> R.drawable.leche
+        "chocolate" -> R.drawable.chocolate
+        "account_verde" -> R.drawable.account_verde
+        else -> R.drawable.account_amarillo
+    }
+}
+
+
+
+@Composable
+fun ConfirmLeaveFamilyDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            CustomTitulo("Salir de la familia", fontSize = 28.sp)
+        },
+        text = {
+            CustomText("¿Estás seguro de que deseas salir de la familia? Esta acción no se puede deshacer.", fontSize = 20.sp)
+        },
+        confirmButton = {
+            CustomButton(
+                text = "Salir",
+                onClick = {
+                    onConfirm()
+                }
+            )
+        },
+        dismissButton = {
+            CustomButton(
+                text = "Cancelar",
+                onClick = onDismiss
+            )
+        },
+        containerColor = Color.White
+    )
+}
+
+
+private fun leaveFamily(context: Context, viewModel: FamiliaViewModel) {
+    val userHelper = User(FirebaseAuth.getInstance(), FirebaseFirestore.getInstance())
+    CoroutineScope(Dispatchers.IO).launch {
+        val result = userHelper.leaveGroup()
+        withContext(Dispatchers.Main) {
+            if (result.isSuccess) {
+                Toast.makeText(context, "Has salido de la familia", Toast.LENGTH_SHORT).show()
+                viewModel.checkFamilyStatus()
+            } else {
+                Toast.makeText(context, result.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+}
+

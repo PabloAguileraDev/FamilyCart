@@ -58,7 +58,7 @@ object MercadonaRepository {
         return api.getCategoryById(id)
     }
 
-    suspend fun getProductById(id: Int): Product? {
+    suspend fun getProductById(id: String): Product? {
         return try {
             api.getProductById(id)
         } catch (e: Exception) {

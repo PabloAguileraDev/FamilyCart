@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,6 +44,8 @@ fun DetallesProductoScreen(
     viewModel: DetallesProductoViewModel,
 ) {
     val producto by viewModel.producto.collectAsState()
+    val esFavorito by viewModel.esFavorito.collectAsState()
+    val showNoFamilyDialog = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -65,7 +70,7 @@ fun DetallesProductoScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.back),
-                        contentDescription = "logo",
+                        contentDescription = "volver",
                         modifier = Modifier
                             .size(55.dp)
                             .clickable {
@@ -73,10 +78,17 @@ fun DetallesProductoScreen(
                             },
                         contentScale = ContentScale.Crop
                     )
+                    val starIcon = if (esFavorito) R.drawable.star_fill else R.drawable.star
                     Image(
-                        painter = painterResource(id = R.drawable.star),
-                        contentDescription = "logo",
-                        modifier = Modifier.size(55.dp),
+                        painter = painterResource(id = starIcon),
+                        contentDescription = "favorito",
+                        modifier = Modifier
+                            .size(55.dp)
+                            .clickable {
+                                viewModel.alternarFavorito(
+                                    onNoFamily = { showNoFamilyDialog.value = true }
+                                )
+                            },
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -92,7 +104,7 @@ fun DetallesProductoScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 CustomText(text = it.display_name, fontSize = 34.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                CustomText(text = "${it.packaging}", color = Gris, fontSize = 28.sp)
+                CustomText(text = it.packaging, color = Gris, fontSize = 28.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 CustomText(
                     text = "${it.price_instructions.unit_price} €",
@@ -101,6 +113,31 @@ fun DetallesProductoScreen(
                 )
             } ?: CustomText("Cargando...")
         }
-        Footer(navController, home = R.drawable.home_fill)
+
+        if (showNoFamilyDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showNoFamilyDialog.value = false },
+                confirmButton = {
+                    com.pablo.familycart.components.CustomButton(
+                        text = "Entendido",
+                        onClick = { showNoFamilyDialog.value = false }
+                    )
+                },
+                title = {
+                    CustomText(text = "No perteneces a una familia", color = Verde)
+                },
+                text = {
+                    CustomText(
+                        text = "No puedes añadir productos a favoritos sin estar en una familia.",
+                        fontSize = 20.sp
+                    )
+                },
+                containerColor = Color.White
+            )
+        }
+
+
+        Footer(navController)
     }
 }
+

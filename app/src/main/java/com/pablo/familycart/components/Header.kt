@@ -25,7 +25,7 @@ import com.pablo.familycart.navigation.Perfil
 import com.pablo.familycart.viewModels.UserViewModel
 
 @Composable
-fun Header(navController: NavController, userViewModel: UserViewModel = viewModel()) {
+fun Header(navController: NavController, userViewModel: UserViewModel = viewModel(), modifier: Modifier = Modifier) {
     val userData by userViewModel.userData.collectAsState()
 
     val context = LocalContext.current
@@ -36,7 +36,7 @@ fun Header(navController: NavController, userViewModel: UserViewModel = viewMode
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,

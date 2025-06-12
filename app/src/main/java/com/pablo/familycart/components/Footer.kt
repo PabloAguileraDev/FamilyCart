@@ -13,17 +13,20 @@ import com.pablo.familycart.R
 import androidx.navigation.NavController
 import com.pablo.familycart.navigation.Categorias
 import com.pablo.familycart.navigation.Familia
+import com.pablo.familycart.navigation.Favoritos
+import com.pablo.familycart.navigation.Lista
 
 @Composable
 fun Footer(
     navController: NavController,
+    modifier: Modifier = Modifier,
     home: Int = R.drawable.home,
     cart: Int = R.drawable.cart,
     heart: Int = R.drawable.heart,
     family: Int = R.drawable.family
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -46,7 +49,7 @@ fun Footer(
             modifier = Modifier
                 .size(35.dp)
                 .clickable {
-                    //navController.navigate(Login)
+                    navController.navigate(Lista)
                 },
             contentScale = ContentScale.Crop
         )
@@ -57,7 +60,7 @@ fun Footer(
             modifier = Modifier
                 .size(35.dp)
                 .clickable {
-                    //navController.navigate(Login)
+                    navController.navigate(Favoritos)
                 },
             contentScale = ContentScale.Crop
         )
