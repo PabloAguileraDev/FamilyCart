@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel encargado de cargar y mostrar los detalles de una compra específica.
+ */
 class DetallesCompraViewModel(
     private val compraId: String,
     private val userRepository: User
@@ -40,7 +43,6 @@ class DetallesCompraViewModel(
 
             Log.d("Firestore", "Historial raw: ${docSnapshot.data}")
 
-            val compraLoaded = docSnapshot.toObject(HistorialCompra::class.java)
             val compraBase = docSnapshot.toObject(HistorialCompra::class.java)
             if (compraBase != null) {
                 val productosDetallados = compraBase.productos.map { producto ->
@@ -67,8 +69,4 @@ class DetallesCompraViewModel(
             Log.e("DetallesCompraVM", "Error cargando compra: ${e.message}")
         }
     }
-
-
 }
-
-

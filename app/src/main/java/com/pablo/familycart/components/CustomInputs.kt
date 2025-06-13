@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,11 +21,14 @@ import androidx.compose.ui.unit.sp
 import com.pablo.familycart.ui.theme.Negro
 import com.pablo.familycart.ui.theme.Verde
 
+/**
+ * Título personalizado con tamaño grande, color y estilo por defecto adaptado al tema de la app.
+ */
 @Composable
 fun CustomTitulo(
     text: String,
-    color: Color = Verde,
     modifier: Modifier = Modifier,
+    color: Color = Verde,
     style: TextStyle = MaterialTheme.typography.headlineLarge,
     fontSize: TextUnit = 40.sp,
     fontWeight: FontWeight = FontWeight.Bold
@@ -38,11 +43,14 @@ fun CustomTitulo(
     )
 }
 
+/**
+ * Texto personalizado reutilizable.
+ */
 @Composable
 fun CustomText(
     text: String,
-    color: Color = Negro,
     modifier: Modifier = Modifier,
+    color: Color = Negro,
     style: TextStyle = MaterialTheme.typography.headlineMedium,
     fontSize: TextUnit = 23.sp,
     fontWeight: FontWeight = FontWeight.SemiBold,
@@ -59,22 +67,36 @@ fun CustomText(
     )
 }
 
+/**
+ * Campo de texto personalizado. Soporta texto normal o de contraseña.
+ *
+ * @param isPassword Si es true, oculta el texto con puntos.
+ * @param isError Aplica color rojo si hay algún error en el input.
+ */
 @Composable
 fun CustomTextField(
     value: String,
+    modifier: Modifier = Modifier,
     onValueChange: (String) -> Unit,
     label: String,
     isPassword: Boolean = false,
     isError: Boolean = false,
-    modifier: Modifier = Modifier
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+        label = {
+            Text(
+                label,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        },
         textStyle = TextStyle(
             fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Medium
         ),
         modifier = modifier.width(300.dp),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
@@ -85,10 +107,15 @@ fun CustomTextField(
             unfocusedBorderColor = Verde,
             unfocusedLabelColor = Verde,
             focusedLabelColor = Verde,
-        )
+        ),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }
 
+/**
+ * Botón reutilizable con esquinas redondeadas y color verde por defecto.
+ */
 @Composable
 fun CustomButton(
     text: String,

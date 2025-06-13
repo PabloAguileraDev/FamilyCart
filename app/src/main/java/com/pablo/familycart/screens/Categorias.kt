@@ -15,26 +15,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.pablo.familycart.R
 import com.pablo.familycart.components.CustomText
-import com.pablo.familycart.components.Header
 import com.pablo.familycart.components.Footer
+import com.pablo.familycart.components.Header
+import com.pablo.familycart.models.Category
+import com.pablo.familycart.models.SubCategory
 import com.pablo.familycart.navigation.Productos
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.CategoriasViewModel
 
+/**
+ * Pantalla que muestra las categorías y subcategorías
+ */
 @Composable
-fun CategoriasScreen(navController: NavController, viewModel: CategoriasViewModel) {
+fun CategoriasScreen(
+    navController: NavController,
+    viewModel: CategoriasViewModel = viewModel()
+) {
+    // Observo el estado de las categorías y de las categorías expandidas
     val categorias by viewModel.categorias.collectAsState()
     val expandedCategoryIds by viewModel.expandedCategoryIds.collectAsState()
-    var showContent by remember { mutableStateOf(false) }
 
-    LaunchedEffect(categorias) {
-        if (categorias.isNotEmpty()) {
-            showContent = true
-        }
-    }
+    val isLoading = categorias.isEmpty()
 
     Column(
         modifier = Modifier
@@ -44,7 +49,7 @@ fun CategoriasScreen(navController: NavController, viewModel: CategoriasViewMode
     ) {
         Header(navController)
 
-        if (categorias.isEmpty()) {
+        if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CustomText(text = "Cargando...", fontSize = 18.sp)
             }
@@ -52,58 +57,73 @@ fun CategoriasScreen(navController: NavController, viewModel: CategoriasViewMode
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 items(categorias) { categoria ->
-                    Column {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                                .border(2.dp, Verde, shape = RoundedCornerShape(12.dp))
-                                .clickable { viewModel.toggleCategoriaExpandida(categoria.id) }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CustomText(text = categoria.name, fontSize = 20.sp)
-                            Spacer(modifier = Modifier.weight(1f))
-                            Image(
-                                painter = painterResource(id = R.drawable.arrow_right),
-                                contentDescription = "Desplegar",
-                                modifier = Modifier.size(28.dp)
-                            )
+                    CategoriaItem(
+                        categoria = categoria,
+                        isExpanded = expandedCategoryIds.contains(categoria.id),
+                        onToggleExpand = { viewModel.switchCategoriaExpandida(categoria.id) },
+                        onSubCategoryClick = { sub ->
+                            navController.navigate(Productos(subcatId = sub.id))
                         }
-
-                        if (expandedCategoryIds.contains(categoria.id)) {
-                            categoria.categories.forEach { sub ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            navController.navigate(Productos(subcatId = sub.id))
-                                        }
-                                        .padding(start = 32.dp, top = 6.dp, bottom = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    CustomText(text = sub.name, fontSize = 18.sp)
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Image(
-                                        painter = painterResource(id = R.drawable.arrow_right),
-                                        contentDescription = "Ir a productos",
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                    )
                 }
             }
         }
-
         Footer(navController, home = R.drawable.home_fill)
     }
 }
 
+/**
+ * Composable que representa una categoría con subcategorías desplegables
+ */
+@Composable
+fun CategoriaItem(
+    categoria: Category,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
+    onSubCategoryClick: (SubCategory) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .border(2.dp, Verde, RoundedCornerShape(12.dp))
+                .clickable { onToggleExpand() }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CustomText(text = categoria.name, fontSize = 20.sp)
+            Spacer(modifier = Modifier.weight(1f))
+            Image(
+                painter = painterResource(id = R.drawable.arrow_right),
+                contentDescription = "Desplegar",
+                modifier = Modifier.size(28.dp)
+            )
+        }
 
+        if (isExpanded) {
+            categoria.categories.forEach { sub ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSubCategoryClick(sub) }
+                        .padding(start = 32.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CustomText(text = sub.name, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Image(
+                        painter = painterResource(id = R.drawable.arrow_right),
+                        contentDescription = "Ir a productos",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}

@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.pablo.familycart.R
@@ -37,13 +38,23 @@ import com.pablo.familycart.ui.theme.Amarillo
 import com.pablo.familycart.ui.theme.Gris
 import com.pablo.familycart.ui.theme.Verde
 
+/**
+ * Pantalla que muestra los detalles de un producto de una lista.
+ *
+ * Permite marcar o desmarcar el producto como favorito.
+ *
+ * @param navController Controlador de navegación para manejar acciones de navegación.
+ * @param viewModel ViewModel que contiene la lógica y datos de la pantalla.
+ */
 @Composable
 fun DetallesProductoListaScreen(
     navController: NavController,
-    viewModel: DetallesProductoListaViewModel,
+    viewModel: DetallesProductoListaViewModel = viewModel(),
 ) {
     val productoLista by viewModel.productoLista.collectAsState()
+
     val producto by viewModel.producto.collectAsState()
+
     val esFavorito by viewModel.esFavorito.collectAsState()
 
     Column(
@@ -66,20 +77,17 @@ fun DetallesProductoListaScreen(
                 contentDescription = "volver",
                 modifier = Modifier
                     .size(55.dp)
-                    .clickable {
-                        navController.popBackStack()
-                    },
+                    .clickable { navController.popBackStack() },
                 contentScale = ContentScale.Crop
             )
+
             val starIcon = if (esFavorito) R.drawable.star_fill else R.drawable.star
             Image(
                 painter = painterResource(id = starIcon),
                 contentDescription = "favorito",
                 modifier = Modifier
                     .size(55.dp)
-                    .clickable {
-                        viewModel.alternarFavorito()
-                    },
+                    .clickable { viewModel.alternarFavorito() },
                 contentScale = ContentScale.Crop
             )
         }
@@ -93,7 +101,6 @@ fun DetallesProductoListaScreen(
             productoLista?.let { pl ->
 
                 if (producto != null) {
-                    // Mostramos la imagen y detalles del producto de API
                     Image(
                         painter = rememberImagePainter(producto?.thumbnail),
                         contentDescription = null,
@@ -104,7 +111,9 @@ fun DetallesProductoListaScreen(
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
+
                     CustomText(text = producto!!.display_name, fontSize = 34.sp)
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(
@@ -124,7 +133,6 @@ fun DetallesProductoListaScreen(
                             )
                         }
 
-                        // Espacio horizontal entre columna y cantidad
                         Spacer(modifier = Modifier.width(16.dp))
 
                         CustomText(
@@ -133,7 +141,9 @@ fun DetallesProductoListaScreen(
                             fontSize = 28.sp
                         )
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
+
                     CustomText("Nota:", fontSize = 28.sp)
                     CustomText(pl.nota ?: "")
 
@@ -142,8 +152,8 @@ fun DetallesProductoListaScreen(
                 }
 
             } ?: CustomText("Cargando producto de la lista...")
-
         }
+
         Footer(navController, cart = R.drawable.cart_fill)
     }
 }

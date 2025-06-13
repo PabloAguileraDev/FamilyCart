@@ -4,7 +4,7 @@ import com.pablo.familycart.models.*
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-// Petición a la API
+// Interfaz de la API
 interface MercadonaApiService {
     @GET("categories/")
     suspend fun getCategories(): CategoriesResponse
@@ -16,26 +16,26 @@ interface MercadonaApiService {
     suspend fun getProductById(@Path("id") id: Any): Product
 }
 
+// Repositorio de consultas a la API
 object MercadonaRepository {
+
     private val api = ApiClient.retrofit.create(MercadonaApiService::class.java)
 
-    // Aquí guardaremos las categorías y subcategorías
     val categoryList = mutableListOf<Category>()
     val subCategoryList = mutableListOf<SubCategory>()
 
-    // Función para cargar las categorías de forma asíncrona
+    /**
+     * Carga todas las categorías y subcategorías desde la API.
+     */
     suspend fun loadCategories() {
         try {
-            // Realizamos la llamada HTTP de forma suspendida (espera hasta obtener respuesta)
-            val categoriesResponse = api.getCategories()
+            val response = api.getCategories()
 
-            // Guardamos las categorías principales
             categoryList.clear()
-            categoryList.addAll(categoriesResponse.results)
-
-            // Extraemos las subcategorías y las agregamos
             subCategoryList.clear()
-            categoriesResponse.results.forEach { category ->
+
+            categoryList.addAll(response.results)
+            response.results.forEach { category ->
                 subCategoryList.addAll(category.categories)
             }
         } catch (e: Exception) {
@@ -43,21 +43,16 @@ object MercadonaRepository {
         }
     }
 
-    suspend fun getProductsBySubcategoryId(id: Any): List<Product> {
-        return try {
-            val response = api.getCategoryById(id)
-            // Asumimos que los productos están en la primera subcategoría
-            response.categories.firstOrNull()?.products ?: emptyList()
-        } catch (e: Exception) {
-            println("Error cargando productos: ${e.message}")
-            emptyList()
-        }
-    }
-
+    /**
+     * Devuelve la respuesta completa de una categoría con subcategorías y productos.
+     */
     suspend fun getCategoryWithProducts(id: Any): ProductResponse {
         return api.getCategoryById(id)
     }
 
+    /**
+     * Obtiene un producto específico por su ID.
+     */
     suspend fun getProductById(id: String): Product? {
         return try {
             api.getProductById(id)
@@ -66,6 +61,4 @@ object MercadonaRepository {
             null
         }
     }
-
-
 }

@@ -57,6 +57,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Pantalla principal que muestra el estado de la familia.
+ */
 @Composable
 fun FamiliaScreen(
     navController: NavHostController,
@@ -64,25 +67,22 @@ fun FamiliaScreen(
 ) {
     val hasFamily by viewModel.hasFamily.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.checkFamilyStatus()
+    LaunchedEffect(hasFamily) {
+        if (hasFamily == null) {
+            viewModel.checkFamilyStatus()
+        }
     }
 
     when (hasFamily) {
-        null -> {
-            LoadingScreen()
-        }
-
-        false -> {
-            NoFamilyUI(navController, viewModel)
-        }
-
-        true -> {
-            FamilyDetails(navController, viewModel)
-        }
+        null -> LoadingScreen()
+        false -> NoFamilyUI(navController, viewModel)
+        true -> FamilyDetails(navController, viewModel)
     }
 }
 
+/**
+ * Pantalla que muestra un indicador de carga mientras se obtiene el estado.
+ */
 @Composable
 fun LoadingScreen() {
     Box(
@@ -93,7 +93,10 @@ fun LoadingScreen() {
     }
 }
 
-
+/**
+ * UI mostrada cuando el usuario no pertenece a ninguna familia.
+ * Permite crear una nueva familia o unirse a una existente mediante diálogos.
+ */
 @Composable
 fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
     var showJoinDialog by remember { mutableStateOf(false) }
@@ -128,21 +131,21 @@ fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
     if (showCreateDialog) {
         CreateFamilyDialog(
             onDismiss = { showCreateDialog = false },
-            onCreated = {
-                viewModel.checkFamilyStatus()
-            }
+            onCreated = { viewModel.setHasFamily(true) }
         )
     }
 
     if (showJoinDialog) {
         JoinFamilyDialog(
             onDismiss = { showJoinDialog = false },
-            onJoined = { viewModel.checkFamilyStatus() }
+            onJoined = { viewModel.setHasFamily(true) }
         )
     }
-
 }
 
+/**
+ * Diálogo para crear una familia con una contraseña.
+ */
 @Composable
 fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
     var password by remember { mutableStateOf("") }
@@ -191,6 +194,9 @@ fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
     )
 }
 
+/**
+ * Diálogo para unirse a una familia mediante código y contraseña.
+ */
 @Composable
 fun JoinFamilyDialog(onDismiss: () -> Unit, onJoined: () -> Unit) {
     var code by remember { mutableStateOf("") }
@@ -239,9 +245,12 @@ fun JoinFamilyDialog(onDismiss: () -> Unit, onJoined: () -> Unit) {
     )
 }
 
-
+/**
+ * Pantalla que muestra los detalles de la familia a la que pertenece el usuario,
+ * Permite salir de la familia.
+ */
 @Composable
-fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel = viewModel()) {
+fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel) {
     val context = LocalContext.current
     var showLeaveDialog by remember { mutableStateOf(false) }
     val miembros by viewModel.miembros.collectAsState()
@@ -279,7 +288,9 @@ fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel 
 
                 CustomText("Creador", color = Verde, fontSize = 28.sp)
                 Divider(modifier = Modifier.padding(vertical = 5.dp).width(93.dp), color = Verde)
-                CustomText(text = ownerNombre ?: it.ownerId, fontSize = 25.sp)
+                if (ownerNombre != null) {
+                    CustomText(text = ownerNombre!!, fontSize = 25.sp)
+                }
 
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -319,11 +330,13 @@ fun FamilyDetails(navController: NavHostController, viewModel: FamiliaViewModel 
             }
         }
 
-
         Footer(navController, family = R.drawable.family_fill)
     }
 }
 
+/**
+ * Devuelve el recurso drawable del avatar según el nombre del avatar.
+ */
 fun getAvatarResId(nombreAvatar: String): Int {
     return when (nombreAvatar) {
         "pan" -> R.drawable.pan
@@ -335,8 +348,9 @@ fun getAvatarResId(nombreAvatar: String): Int {
     }
 }
 
-
-
+/**
+ * Diálogo que confirma si el usuario desea salir de la familia.
+ */
 @Composable
 fun ConfirmLeaveFamilyDialog(
     onDismiss: () -> Unit,
@@ -353,9 +367,7 @@ fun ConfirmLeaveFamilyDialog(
         confirmButton = {
             CustomButton(
                 text = "Salir",
-                onClick = {
-                    onConfirm()
-                }
+                onClick = { onConfirm() }
             )
         },
         dismissButton = {
@@ -368,7 +380,9 @@ fun ConfirmLeaveFamilyDialog(
     )
 }
 
-
+/**
+ * Función que realiza la operación de salir de la familia,
+ */
 private fun leaveFamily(context: Context, viewModel: FamiliaViewModel) {
     val userHelper = User(FirebaseAuth.getInstance(), FirebaseFirestore.getInstance())
     CoroutineScope(Dispatchers.IO).launch {
@@ -376,11 +390,10 @@ private fun leaveFamily(context: Context, viewModel: FamiliaViewModel) {
         withContext(Dispatchers.Main) {
             if (result.isSuccess) {
                 Toast.makeText(context, "Has salido de la familia", Toast.LENGTH_SHORT).show()
-                viewModel.checkFamilyStatus()
+                viewModel.setHasFamily(false)
             } else {
                 Toast.makeText(context, result.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
             }
         }
     }
 }
-

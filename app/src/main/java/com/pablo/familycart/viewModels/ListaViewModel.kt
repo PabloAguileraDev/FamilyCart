@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel para manejar la lógica de listas compartidas por familias.
+ */
 class ListaViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -29,6 +32,9 @@ class ListaViewModel(
         loadFamilyLists()
     }
 
+    /**
+     * Carga las listas de la familia.
+     */
     fun loadFamilyLists() {
         viewModelScope.launch {
             _loading.value = true
@@ -55,7 +61,10 @@ class ListaViewModel(
         }
     }
 
-    fun createNewList(listName: String, onComplete: () -> Unit) {
+    /**
+     * Crea una nueva lista.
+     */
+    fun createList(listName: String, onComplete: () -> Unit) {
         viewModelScope.launch {
             val result = User(auth, db).createList(listName)
             if (result.isSuccess) {
@@ -65,10 +74,10 @@ class ListaViewModel(
         }
     }
 
+    /**
+     * Elimina una lista específica
+     */
     fun deleteList(listId: String, onComplete: () -> Unit) {
-        val user = FirebaseAuth.getInstance().currentUser ?: return
-        val db = FirebaseFirestore.getInstance()
-
         familyId.value?.let { family ->
             db.collection("groups")
                 .document(family)
@@ -76,7 +85,6 @@ class ListaViewModel(
                 .document(listId)
                 .delete()
                 .addOnSuccessListener {
-                    // Recargar listas después de borrar
                     loadFamilyLists()
                     onComplete()
                 }
@@ -85,5 +93,4 @@ class ListaViewModel(
                 }
         }
     }
-
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -13,29 +14,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.pablo.familycart.R
 import com.pablo.familycart.components.CustomText
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
 import com.pablo.familycart.navigation.DetallesProducto
+import com.pablo.familycart.ui.theme.Amarillo
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.FavoritosViewModel
-import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.pablo.familycart.ui.theme.Amarillo
 import kotlinx.coroutines.tasks.await
 
-
+/**
+ * Pantalla principal que muestra las pestañas "Favoritos" y "Mis compras" de la familia.
+ * Controla la carga de datos y la navegación entre pestañas.
+ */
 @Composable
 fun FavoritosScreen(
     navController: NavController,
@@ -107,8 +110,7 @@ fun FavoritosScreen(
                         if (familyId != null) {
                             FavoritosTabContent(
                                 viewModel = viewModel,
-                                navController = navController,
-                                familyId = familyId!!
+                                navController = navController
                             )
                         } else {
                             Box(
@@ -134,13 +136,12 @@ fun FavoritosScreen(
                                 }
                             }
                         }
-
                     }
                     1 -> {
                         if (familyId != null) {
                             viewModel.loadHistorial(familyId!!)
                             MisComprasTabContent(viewModel, navController)
-                        }else {
+                        } else {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -169,14 +170,16 @@ fun FavoritosScreen(
             }
         }
     }
-
 }
 
+/**
+ * Contenido de la pestaña "Favoritos".
+ * Muestra la lista de productos favoritos con su información básica.
+ */
 @Composable
 fun FavoritosTabContent(
     viewModel: FavoritosViewModel,
     navController: NavController,
-    familyId: String
 ) {
     val favoritos by viewModel.favoritos.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -221,9 +224,7 @@ fun FavoritosTabContent(
                                 .padding(end = 12.dp)
                         )
 
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             CustomText(text = producto.display_name, fontSize = 20.sp)
 
                             CustomText(
@@ -267,7 +268,10 @@ fun FavoritosTabContent(
     }
 }
 
-
+/**
+ * Contenido de la pestaña "Mis compras".
+ * Muestra el historial de compras de la familia.
+ */
 @Composable
 fun MisComprasTabContent(viewModel: FavoritosViewModel, navController: NavController) {
     val historial by viewModel.historial.collectAsState()
@@ -288,13 +292,10 @@ fun MisComprasTabContent(viewModel: FavoritosViewModel, navController: NavContro
                         .padding(vertical = 8.dp)
                         .border(2.dp, Verde, RoundedCornerShape(10.dp))
                         .clickable {
-                            println("Compra que paso: $compra")
-                            val compraId = compra.id
                             navController.currentBackStackEntry?.savedStateHandle?.set("compraId", compra.id)
-                            navController.navigate("detallesCompra/${compraId}")
+                            navController.navigate("detallesCompra/${compra.id}")
                         }
                         .padding(12.dp),
-
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
@@ -315,11 +316,9 @@ fun MisComprasTabContent(viewModel: FavoritosViewModel, navController: NavContro
                             fontSize = 18.sp,
                             color = Amarillo
                         )
-
                     }
                 }
             }
         }
     }
 }
-

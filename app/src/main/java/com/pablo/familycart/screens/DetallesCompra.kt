@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pablo.familycart.R
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
@@ -25,8 +26,11 @@ import com.pablo.familycart.navigation.DetallesProducto
 import com.pablo.familycart.ui.theme.Amarillo
 import com.pablo.familycart.viewModels.DetallesCompraViewModel
 
+/**
+ * Pantalla que muestra los detalles de una compra previamente realizada.
+ */
 @Composable
-fun DetallesCompraScreen(navController: NavController, viewModel: DetallesCompraViewModel) {
+fun DetallesCompraScreen(navController: NavController, viewModel: DetallesCompraViewModel = viewModel()) {
     val compra by viewModel.compra.collectAsState()
     var showContent by remember { mutableStateOf(false) }
 
@@ -36,14 +40,12 @@ fun DetallesCompraScreen(navController: NavController, viewModel: DetallesCompra
 
     when {
         compra == null && !showContent -> {
-            // Mostrar cargando antes de que llegue la data
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CustomText("Cargando compra...", fontSize = 20.sp)
             }
         }
 
         compra == null && showContent -> {
-            // Ya terminó de intentar cargar pero no pudo
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CustomText("No se pudo cargar la compra", fontSize = 20.sp)
             }
@@ -143,5 +145,3 @@ fun DetallesCompraScreen(navController: NavController, viewModel: DetallesCompra
         }
     }
 }
-
-

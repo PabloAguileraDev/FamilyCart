@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel responsable de manejar los datos del perfil de usuario.
+ * Carga los datos desde Firebase y permite actualizarlos.
+ */
 class PerfilViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -22,6 +26,9 @@ class PerfilViewModel(
         loadUserData()
     }
 
+    /**
+     * Carga los datos del usuario desde Firestore.
+     */
     private fun loadUserData() {
         val currentUser = auth.currentUser ?: return
 
@@ -30,11 +37,13 @@ class PerfilViewModel(
                 val snapshot = db.collection("users").document(currentUser.uid).get().await()
                 _userData.value = snapshot.toObject(UserData::class.java)
             } catch (e: Exception) {
-                // Manejar error si quieres
             }
         }
     }
 
+    /**
+     * Actualiza los dtos del usuario en Firebase.
+     */
     fun updateUserProfile(nombre: String, apellidos: String, foto: String) {
         val uid = auth.currentUser?.uid ?: return
 
@@ -47,12 +56,9 @@ class PerfilViewModel(
                         "foto" to foto
                     )
                 ).await()
-                loadUserData() // Recarga los datos
+                loadUserData()
             } catch (e: Exception) {
-                // Manejo de errores si lo deseas
             }
         }
     }
-
-
 }

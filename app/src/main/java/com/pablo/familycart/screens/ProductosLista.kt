@@ -21,17 +21,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.pablo.familycart.R
-import com.pablo.familycart.components.CustomButton
-import com.pablo.familycart.components.CustomText
-import com.pablo.familycart.components.CustomTitulo
-import com.pablo.familycart.components.Footer
-import com.pablo.familycart.components.Header
+import com.pablo.familycart.components.*
 import com.pablo.familycart.models.Product
 import com.pablo.familycart.models.ProductoLista
 import com.pablo.familycart.navigation.Categorias
 import com.pablo.familycart.ui.theme.Amarillo
 import com.pablo.familycart.viewModels.ProductosListaViewModel
 
+/**
+ * Pantalla principal de productos en la lista de la compra.
+ * Permite ver los productos, ver sus detalles o eliminarlos de la lista.
+ */
 @Composable
 fun ProductosListaScreen(
     navController: NavController,
@@ -42,10 +42,12 @@ fun ProductosListaScreen(
     val listId = viewModel.listId
     var productoAEliminar by remember { mutableStateOf<Product?>(null) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(WindowInsets.systemBars.asPaddingValues())) {
-        Header(
-            navController = navController
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.systemBars.asPaddingValues())
+    ) {
+        Header(navController = navController)
 
         Row(
             modifier = Modifier
@@ -56,13 +58,18 @@ fun ProductosListaScreen(
             CustomButton(
                 text = "Añadir productos",
                 onClick = { navController.navigate(Categorias) },
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
             )
             CustomButton(
                 text = "Voy a comprar",
-                onClick = { navController.navigate("compra/$familyId/$listId")
+                onClick = {
+                    navController.navigate("compra/$familyId/$listId")
                 },
-                modifier = Modifier.weight(1f).padding(start = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
             )
         }
 
@@ -90,28 +97,30 @@ fun ProductosListaScreen(
                         ) {
                             productoAEliminar = productoCompleto.producto
                         }
-
                     }
                 }
             }
         }
+
         productoAEliminar?.let { producto ->
             ConfirmDeleteProductDialog(
                 show = true,
                 producto = producto,
                 onDismiss = { productoAEliminar = null },
                 onConfirm = {
-                    viewModel.eliminarProducto(producto.id.toString())
+                    viewModel.removeProducto(producto.id.toString())
                     productoAEliminar = null
                 }
             )
         }
 
-
-        Footer(navController,cart = R.drawable.cart_fill)
+        Footer(navController, cart = R.drawable.cart_fill)
     }
 }
 
+/**
+ * Componente que muestra la información de un producto dentro de la lista de compra.
+ */
 @Composable
 fun ProductoCard(
     producto: Product,
@@ -158,14 +167,16 @@ fun ProductoCard(
                         modifier = Modifier.padding(end = 8.dp)
                     )
 
-                    producto.price_instructions.previous_unit_price?.takeIf { it.isNotEmpty() }?.let { previousPrice ->
-                        CustomText(
-                            text = "$previousPrice €",
-                            fontSize = 16.sp,
-                            color = Color.Red,
-                            style = androidx.compose.ui.text.TextStyle(textDecoration = TextDecoration.LineThrough)
-                        )
-                    }
+                    producto.price_instructions.previous_unit_price
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let { previousPrice ->
+                            CustomText(
+                                text = "$previousPrice €",
+                                fontSize = 16.sp,
+                                color = Color.Red,
+                                style = androidx.compose.ui.text.TextStyle(textDecoration = TextDecoration.LineThrough)
+                            )
+                        }
                 }
 
                 CustomText(
@@ -187,6 +198,9 @@ fun ProductoCard(
     }
 }
 
+/**
+ * Diálogo de confirmación para eliminar un producto de la lista.
+ */
 @Composable
 fun ConfirmDeleteProductDialog(
     show: Boolean,
@@ -225,4 +239,3 @@ fun ConfirmDeleteProductDialog(
         containerColor = Color.White
     )
 }
-

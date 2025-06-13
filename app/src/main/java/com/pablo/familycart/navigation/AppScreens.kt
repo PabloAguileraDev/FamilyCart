@@ -4,6 +4,11 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
+/**
+ * Destinos de navegación de la app
+ * Cada objeto/clase representa una pantalla o ruta dentro de la aplicación.
+ */
+
 @Serializable
 object Login
 
@@ -28,19 +33,8 @@ object Perfil
 @Serializable
 object Lista
 
-@Serializable
-data class ProductosLista(val familyId: String, val listId: String) {
-    override fun toString(): String = "productos_lista/$familyId/$listId"
-}
-
 @Parcelize
-data class DetallesProductoLista(val productoId: String, val listId: String): Parcelable
-
-@Serializable
-object Compra
+data class DetallesProductoLista(val productoId: String, val listId: String) : Parcelable
 
 @Serializable
 object Favoritos
-
-@Serializable
-object DetallesCompra

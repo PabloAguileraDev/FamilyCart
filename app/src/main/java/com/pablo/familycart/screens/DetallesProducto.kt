@@ -38,6 +38,13 @@ import com.pablo.familycart.ui.theme.Gris
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.DetallesProductoViewModel
 
+/**
+ * Pantalla que muestra los detalles de un producto.
+ * Permite marcar o desmarcar el producto como favorito.
+ *
+ * @param navController Controlador de navegación para manejar eventos de navegación.
+ * @param viewModel ViewModel que provee la información del producto y maneja la lógica.
+ */
 @Composable
 fun DetallesProductoScreen(
     navController: NavController,
@@ -135,7 +142,6 @@ fun DetallesProductoScreen(
                 containerColor = Color.White
             )
         }
-
 
         Footer(navController)
     }

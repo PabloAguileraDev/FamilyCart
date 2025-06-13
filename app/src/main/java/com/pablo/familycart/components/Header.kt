@@ -4,10 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,19 +13,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pablo.familycart.R
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.pablo.familycart.models.UserData
-import com.pablo.familycart.navigation.Login
+import com.pablo.familycart.R
 import com.pablo.familycart.navigation.Perfil
 import com.pablo.familycart.viewModels.UserViewModel
 
+/**
+ * Cabecera de la app que muestra el logo y el avatar del usuario.
+ *
+ * @param navController Controlador de navegación para redirigir a la pantalla de perfil.
+ * @param userViewModel ViewModel que proporciona los datos del usuario logueado.
+ * @param modifier Permite modificar el contenedor externo (por defecto vacío).
+ */
 @Composable
-fun Header(navController: NavController, userViewModel: UserViewModel = viewModel(), modifier: Modifier = Modifier) {
+fun Header(
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    userViewModel: UserViewModel = viewModel()
+) {
+    // Obtengo el usuario desde el ViewModel
     val userData by userViewModel.userData.collectAsState()
 
+    // Contexto necesario para acceder a los recursos
     val context = LocalContext.current
+
+    // Determina la ruta de la imagen según el nombre proporcionado o usa una por defecto
     val imageResId = remember(userData?.foto) {
         userData?.foto?.let { fotoName ->
             context.resources.getIdentifier(fotoName, "drawable", context.packageName)
@@ -42,14 +51,15 @@ fun Header(navController: NavController, userViewModel: UserViewModel = viewMode
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        // Logo de Mercadona
         Image(
             painter = painterResource(id = R.drawable.logo_mercadona_completo),
             contentDescription = "logo",
-            modifier = Modifier
-                .height(40.dp),
+            modifier = Modifier.height(40.dp),
             contentScale = ContentScale.FillHeight
         )
 
+        // Imagen de perfil del usuario, navega a la pantalla de perfil al pulsar
         Image(
             painter = painterResource(id = imageResId),
             contentDescription = "cuenta",
@@ -58,9 +68,8 @@ fun Header(navController: NavController, userViewModel: UserViewModel = viewMode
                 .clip(CircleShape)
                 .clickable {
                     navController.navigate(Perfil)
-                           },
+                },
             contentScale = ContentScale.Crop
         )
     }
 }
-

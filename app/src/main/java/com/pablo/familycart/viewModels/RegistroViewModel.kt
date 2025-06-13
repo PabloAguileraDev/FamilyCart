@@ -10,8 +10,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.pablo.familycart.data.User
 import kotlinx.coroutines.launch
 
-
-class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() {
+/**
+ * ViewModel para la pantalla de registro de usuario.
+ * Maneja los estados de los campos de entrada, validación y la lógica para registrar un usuario.
+ *
+ * @param auth instancia de FirebaseAuth para autenticación.
+ * @param db instancia de Firebase para base de datos.
+ */
+class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore) : ViewModel() {
 
     var nombre by mutableStateOf("")
     var apellidos by mutableStateOf("")
@@ -25,15 +31,15 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
     var passwordError by mutableStateOf(false)
     var confirmPasswordError by mutableStateOf(false)
 
-
     private val userRepository = User(auth, db)
 
     /**
-     * Método que registra al usuario en base de datos
+     * Registra al usuario en la base de datos.
+     *
+     * Si la validación de los campos es correcta, intenta registrar al usuario.
      */
     fun registerUser(onSuccess: () -> Unit, onFailure: (String) -> Unit) {
 
-        // Valida los datos
         val (isValid, errorMessage) = validarCampos(
             nombre = nombre,
             apellidos = apellidos,
@@ -57,15 +63,13 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
 
             result.fold(
                 onSuccess = { onSuccess() },
-                onFailure = { onFailure(it.message ?: "Error en el registro")}
+                onFailure = { onFailure(it.message ?: "Error en el registro") }
             )
         }
-
-
     }
 
     /**
-     * Método que comprueba que los datos sean correctos
+     * Valida todos los campos del formulario y actualiza los estados de error.
      */
     private fun validarCampos(
         nombre: String,
@@ -74,10 +78,12 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
         password: String,
         confirmPassword: String
     ): Pair<Boolean, String> {
+
         nombreError = nombre.isBlank()
         apellidosError = apellidos.isBlank()
         emailError = !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        passwordError = password.length < 8
+        passwordError = password.length < 8 ||
+                !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$"))
         confirmPasswordError = password != confirmPassword
 
         return when {
@@ -109,6 +115,4 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore): ViewModel() 
     fun validarConfirmPassword() {
         confirmPasswordError = confirmPassword != password
     }
-
-
 }

@@ -12,6 +12,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * ViewModel encargado de manejar la lógica relacionada con la familia.
+ * */
 class FamiliaViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -29,11 +32,18 @@ class FamiliaViewModel(
     private val _ownerNombre = MutableStateFlow<String?>(null)
     val ownerNombre: StateFlow<String?> = _ownerNombre
 
-
-    init {
-        checkFamilyStatus()
+    /**
+     * Actualiza el estado de pertenencia a familia solo si es diferente al valor actual.
+     */
+    fun setHasFamily(value: Boolean) {
+        if (_hasFamily.value != value) {
+            _hasFamily.value = value
+        }
     }
 
+    /**
+     * Carga los datos de la familia si el usuario pertenece a una consultándolo en Firebase.
+     */
     fun checkFamilyStatus() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -41,14 +51,14 @@ class FamiliaViewModel(
             return
         }
 
+        if (_hasFamily.value == true && _familyData.value != null) return
+
         viewModelScope.launch {
             try {
-                // 1. Obtener ID de familia del usuario
                 val snapshot = db.collection("users").document(currentUser.uid).get().await()
                 val familyId = snapshot.getString("familyId")
 
                 if (familyId != null) {
-                    // 2. Solo si tiene familia, actualizar estado y cargar datos
                     _hasFamily.value = true
                     cargarDatosFamilia(familyId)
                 } else {
@@ -61,7 +71,9 @@ class FamiliaViewModel(
         }
     }
 
-
+    /**
+     * Carga los datos de la familia por su familyId.
+     */
     private suspend fun cargarDatosFamilia(familyId: String) {
         try {
             val groupDoc = db.collection("groups").document(familyId).get().await()
@@ -80,6 +92,4 @@ class FamiliaViewModel(
             Log.e("FamiliaViewModel", "Error cargando datos de la familia", e)
         }
     }
-
-
 }

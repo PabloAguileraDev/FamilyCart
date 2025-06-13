@@ -1,22 +1,25 @@
 package com.pablo.familycart.viewModels
 
-import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pablo.familycart.data.User
-import com.pablo.familycart.models.*
+import com.pablo.familycart.models.SubCategoryWithProducts
 import com.pablo.familycart.utils.apiUtils.MercadonaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel responsable de la pantalla de productos.
+ * Carga los productos y permite añadirlos a una lista
+ */
 class ProductosViewModel(
     savedStateHandle: SavedStateHandle,
     private val user: User
 ) : ViewModel() {
 
-    private val subcatId = savedStateHandle.get<Int>("subcatId")?.toString() ?: ""
+    private val subcatId: String = savedStateHandle.get<Int>("subcatId")?.toString() ?: ""
 
     private val _subcatsConProductos = MutableStateFlow<List<SubCategoryWithProducts>>(emptyList())
     val subcatsConProductos: StateFlow<List<SubCategoryWithProducts>> = _subcatsConProductos
@@ -29,6 +32,9 @@ class ProductosViewModel(
         loadListas()
     }
 
+    /**
+     * Carga los productos correspondientes a la subcategoría actual.
+     */
     private fun loadProductos() {
         viewModelScope.launch {
             val response = MercadonaRepository.getCategoryWithProducts(subcatId)
@@ -36,6 +42,9 @@ class ProductosViewModel(
         }
     }
 
+    /**
+     * Carga las listas de la familia.
+     */
     private fun loadListas() {
         viewModelScope.launch {
             val listasResult = user.getUserLists()
@@ -48,6 +57,9 @@ class ProductosViewModel(
         }
     }
 
+    /**
+     * Añade un producto a una lista.
+     */
     fun addProductToList(
         listId: String,
         productId: String,
@@ -60,7 +72,4 @@ class ProductosViewModel(
             onResult(result)
         }
     }
-
 }
-
-

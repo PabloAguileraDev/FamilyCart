@@ -12,6 +12,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * ViewModel para la pantalla de detalles de producto.
+ *
+ * Carga los datos de un producto a partir de su ID y maneja
+ * la lógica para marcar o desmarcar el producto como favorito.
+ *
+ * @param args Bundle que debe contener el ID del producto.
+ * @param user Instancia de User.
+ */
 class DetallesProductoViewModel(args: Bundle, private val user: User) : ViewModel() {
     val producto = MutableStateFlow<Product?>(null)
 
@@ -23,6 +32,9 @@ class DetallesProductoViewModel(args: Bundle, private val user: User) : ViewMode
         loadProducto(productoId)
     }
 
+    /**
+     * Carga los datos de un producto de la API por su ID.
+     */
     private fun loadProducto(id: String) {
         viewModelScope.launch {
             val p = MercadonaRepository.getProductById(id)
@@ -37,6 +49,9 @@ class DetallesProductoViewModel(args: Bundle, private val user: User) : ViewMode
         }
     }
 
+    /**
+     * Alterna el estado de favorito del producto.
+     */
     fun alternarFavorito(onNoFamily: () -> Unit) {
         val p = producto.value ?: return
         val productId = p.id
@@ -49,16 +64,16 @@ class DetallesProductoViewModel(args: Bundle, private val user: User) : ViewMode
             }
 
             if (_esFavorito.value) {
-                user.eliminarDeFavoritos(familyId, productId)
+                user.removeFromFavoritos(familyId, productId)
             } else {
-                user.agregarAFavoritos(familyId, productId)
+                user.addToFavoritos(familyId, productId)
             }
 
             _esFavorito.update { !_esFavorito.value }
         }
     }
-
 }
+
 
 
 

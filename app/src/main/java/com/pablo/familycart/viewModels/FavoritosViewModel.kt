@@ -16,9 +16,8 @@ import kotlinx.coroutines.tasks.await
 class FavoritosViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-) : ViewModel(){
+) : ViewModel() {
 
-    // Lista de productos favoritos cargados completos
     private val _favoritos = MutableStateFlow<List<Product>>(emptyList())
     val favoritos: StateFlow<List<Product>> = _favoritos
 
@@ -28,6 +27,11 @@ class FavoritosViewModel(
     private val _historial = MutableStateFlow<List<HistorialCompra>>(emptyList())
     val historial: StateFlow<List<HistorialCompra>> = _historial
 
+    /**
+     * Carga la lista de productos favoritos para la familia indicada.
+     * Obtiene los IDs de los productos favoritos desde Firestore y luego
+     * recupera los detalles completos de cada producto mediante la API.
+     */
     fun loadFavoritos(familyId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -46,6 +50,7 @@ class FavoritosViewModel(
                 }
 
                 val productos = mutableListOf<Product>()
+
                 for (productId in productIds) {
                     val producto = getProductById(productId)
                     producto?.let { productos.add(it.copy(id = productId)) }
@@ -61,6 +66,9 @@ class FavoritosViewModel(
         }
     }
 
+    /**
+     * Carga el historial de compras de la familia.
+     */
     fun loadHistorial(familyId: String) {
         viewModelScope.launch {
             try {
@@ -96,7 +104,6 @@ class FavoritosViewModel(
                     } else null
                 }
 
-
                 _historial.value = compras
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -104,5 +111,4 @@ class FavoritosViewModel(
             }
         }
     }
-
 }

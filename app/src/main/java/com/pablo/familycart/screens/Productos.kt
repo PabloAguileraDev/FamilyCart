@@ -1,56 +1,42 @@
 package com.pablo.familycart.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import com.pablo.familycart.R
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
-import com.pablo.familycart.components.CustomButton
-import com.pablo.familycart.components.CustomText
-import com.pablo.familycart.components.CustomTextField
-import com.pablo.familycart.components.Footer
-import com.pablo.familycart.components.Header
+import com.pablo.familycart.R
+import com.pablo.familycart.components.*
 import com.pablo.familycart.navigation.DetallesProducto
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.ProductosViewModel
 
+/**
+ * Pantalla principal que muestra los productos agrupados por subcategoría.
+ */
 @Composable
 fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel) {
     val subcatsConProductos by viewModel.subcatsConProductos.collectAsState()
+    val listasDisponibles by viewModel.listas.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedProductId by remember { mutableStateOf<String?>(null) }
 
-    val listasDisponibles by viewModel.listas.collectAsState()
     var showAlreadyExistsDialog by remember { mutableStateOf(false) }
-
     var showNoFamilyDialog by remember { mutableStateOf(false) }
 
     Column(
@@ -61,9 +47,7 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
     ) {
         Header(navController)
 
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
+        LazyColumn(modifier = Modifier.weight(1f)) {
             subcatsConProductos.forEach { subcat ->
                 item {
                     CustomText(
@@ -95,9 +79,7 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                 .align(Alignment.CenterVertically)
                         )
 
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             CustomText(text = producto.display_name, fontSize = 20.sp)
 
                             val packaging = producto.packaging ?: ""
@@ -108,15 +90,11 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                             val totalUnits = producto.price_instructions.total_units
 
                             val displayUnidades = when {
-                                producto.price_instructions.is_pack && totalUnits != null && packSize != null && !unitName.isNullOrBlank() -> {
+                                producto.price_instructions.is_pack && totalUnits != null && packSize != null && !unitName.isNullOrBlank() ->
                                     "$totalUnits $unitName x ${packSize}${sizeFormat}"
-                                }
-                                !packaging.isNullOrBlank() && unitSize != null -> {
+                                !packaging.isNullOrBlank() && unitSize != null ->
                                     "$packaging • ${unitSize}${sizeFormat}"
-                                }
-                                else -> {
-                                    ""
-                                }
+                                else -> ""
                             }
 
                             CustomText(
@@ -124,7 +102,6 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                 fontSize = 18.sp,
                                 color = Color.Gray
                             )
-
 
                             Row(
                                 modifier = Modifier
@@ -141,9 +118,9 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
                                         modifier = Modifier.padding(end = 8.dp)
                                     )
 
-                                    producto.price_instructions.previous_unit_price?.takeIf { it.isNotEmpty() }?.let { previousPrice ->
+                                    producto.price_instructions.previous_unit_price?.takeIf { it.isNotEmpty() }?.let {
                                         CustomText(
-                                            text = "${previousPrice.trim()} €",
+                                            text = "${it.trim()} €",
                                             fontSize = 16.sp,
                                             color = Color.Red,
                                             style = TextStyle(textDecoration = TextDecoration.LineThrough)
@@ -201,16 +178,13 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
             AlertDialog(
                 onDismissRequest = { showAlreadyExistsDialog = false },
                 confirmButton = {
-                    CustomButton(
-                        text = "Cerrar",
-                        onClick = { showAlreadyExistsDialog = false }
-                    )
+                    CustomButton("Cerrar", onClick = { showAlreadyExistsDialog = false })
                 },
                 title = {
-                    CustomText(text = "Producto ya añadido", color = Verde, fontSize = 28.sp)
+                    CustomText("Producto ya añadido", color = Verde, fontSize = 28.sp)
                 },
                 text = {
-                    CustomText(text = "Este producto ya está en la lista seleccionada.", fontSize = 22.sp)
+                    CustomText("Este producto ya está en la lista seleccionada.", fontSize = 22.sp)
                 },
                 containerColor = Color.White
             )
@@ -220,28 +194,26 @@ fun ProductosScreen(navController: NavController, viewModel: ProductosViewModel)
             AlertDialog(
                 onDismissRequest = { showNoFamilyDialog = false },
                 confirmButton = {
-                    CustomButton(
-                        text = "Entendido",
-                        onClick = { showNoFamilyDialog = false }
-                    )
+                    CustomButton("Entendido", onClick = { showNoFamilyDialog = false })
                 },
                 title = {
-                    CustomText(text = "No se pueden añadir productos", color = Verde)
+                    CustomText("No se pueden añadir productos", color = Verde)
                 },
                 text = {
                     CustomText(
-                        text = "Para añadir productos tienes que pertenecer a una familia, y recuerda crear alguna lista!",
+                        "Para añadir productos tienes que pertenecer a una familia, y recuerda crear alguna lista!",
                         fontSize = 20.sp
                     )
                 },
                 containerColor = Color.White
             )
         }
-
     }
 }
 
-
+/**
+ * Diálogo añadir un producto a una lista
+ */
 @Composable
 fun AddProductDialog(
     show: Boolean,
@@ -265,7 +237,6 @@ fun AddProductDialog(
             CustomText("Añadir producto", fontSize = 30.sp)
 
             Spacer(Modifier.height(16.dp))
-
             CustomText("Selecciona una lista", fontSize = 20.sp)
             Spacer(Modifier.height(8.dp))
             DropdownMenuBox(
@@ -275,31 +246,22 @@ fun AddProductDialog(
             )
 
             Spacer(Modifier.height(20.dp))
-
             CustomText("Cantidad", fontSize = 20.sp)
             Spacer(Modifier.height(8.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                CustomButton(
-                    text = "-",
-                    onClick = { if (cantidad > 1) cantidad-- },
-                    modifier = Modifier.size(50.dp)
-                )
+                CustomButton("-", onClick = { if (cantidad > 1) cantidad-- }, modifier = Modifier.size(50.dp))
                 Spacer(Modifier.width(20.dp))
                 CustomText("$cantidad", fontSize = 22.sp)
                 Spacer(Modifier.width(20.dp))
-                CustomButton(
-                    text = "+",
-                    onClick = { cantidad++ },
-                    modifier = Modifier.size(50.dp)
-                )
+                CustomButton("+", onClick = { cantidad++ }, modifier = Modifier.size(50.dp))
             }
 
             Spacer(Modifier.height(20.dp))
-
             CustomText("Nota (opcional)", fontSize = 20.sp)
             Spacer(Modifier.height(8.dp))
             CustomTextField(
@@ -310,32 +272,25 @@ fun AddProductDialog(
             )
 
             Spacer(Modifier.height(24.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                CustomButton(
-                    text = "Cancelar",
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
-                )
+                CustomButton("Cancelar", onClick = onDismiss, modifier = Modifier.weight(1f))
                 Spacer(Modifier.width(12.dp))
-                CustomButton(
-                    text = "Añadir",
-                    onClick = {
-                        val listId = listas[selectedListIndex].first
-                        onAdd(listId, cantidad, nota)
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                CustomButton("Añadir", onClick = {
+                    val listId = listas[selectedListIndex].first
+                    onAdd(listId, cantidad, nota)
+                    onDismiss()
+                }, modifier = Modifier.weight(1f))
             }
         }
     }
 }
 
-
+/**
+ * Componente que renderiza un menú desplegable para seleccionar una opción de lista
+ */
 @Composable
 fun DropdownMenuBox(
     options: List<String>,
@@ -349,31 +304,27 @@ fun DropdownMenuBox(
         CustomButton(
             text = options[selectedIndex],
             onClick = { expanded = true },
-            modifier = Modifier
-                .onGloballyPositioned { coordinates ->
-                    buttonWidth = coordinates.size.width
-                }
+            modifier = Modifier.onGloballyPositioned { coordinates ->
+                buttonWidth = coordinates.size.width
+            }
         )
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.width(with(LocalDensity.current) { buttonWidth.toDp() }).background(Color.White)
+            modifier = Modifier
+                .width(with(LocalDensity.current) { buttonWidth.toDp() })
+                .background(Color.White)
         ) {
             options.forEachIndexed { index, option ->
                 DropdownMenuItem(
-                    text = {
-                        CustomText(option)
-                    },
+                    text = { CustomText(option) },
                     onClick = {
                         onSelectedIndexChange(index)
                         expanded = false
-                    },
-                    modifier = Modifier.background(Color.White)
+                    }
                 )
             }
         }
     }
 }
-
-

@@ -1,14 +1,16 @@
 package com.pablo.familycart.models
 
 import android.os.Parcelable
-import com.google.errorprone.annotations.Keep
 import com.google.firebase.Timestamp
 import kotlinx.parcelize.Parcelize
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+
+/**
+ * Datos de un usuario.
+ */
 @Parcelize
-// Data class con los datos del usuario
 data class UserData(
     val uid: String = "",
     val email: String = "",
@@ -18,14 +20,18 @@ data class UserData(
     val familyId: String? = null
 ) : Parcelable
 
-// Data class con los datos de la familia
+/**
+ * Información de una familia
+ */
 data class FamilyData(
     val code: String = "",
     val password: String = "",
     val ownerId: String = ""
 )
 
-// Una subcategoría
+/**
+ * Subcategoría de productos
+ */
 data class SubCategory(
     val id: Int,
     val name: String,
@@ -35,7 +41,9 @@ data class SubCategory(
     val is_extended: Boolean
 )
 
-// Una categoría
+/**
+ * Categoría de productos
+ */
 data class Category(
     val id: Int,
     val name: String,
@@ -44,7 +52,9 @@ data class Category(
     val categories: List<SubCategory>
 )
 
-// La respuesta completa del endpoint /categories
+/**
+ * Respuesta de la API al consultar las categorías
+ */
 data class CategoriesResponse(
     val count: Int,
     val next: String?,
@@ -52,7 +62,9 @@ data class CategoriesResponse(
     val results: List<Category>
 )
 
-// Conexión a la API
+/**
+ * Cliente Retrofit para consumir la API de Mercadona
+ */
 object ApiClient {
     val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl("https://tienda.mercadona.es/api/")
@@ -60,34 +72,44 @@ object ApiClient {
         .build()
 }
 
-// Un producto
+/**
+ * Producto que devuelve el endpoint /products
+ */
 data class ProductResponse(
     val id: Int,
     val name: String,
     val categories: List<SubCategoryWithProducts>
 )
 
-// Producto de la lista en Firebase
+/**
+ * Producto almacenado en una lista de la compra
+ */
 data class ProductoLista(
     val productId: String,
     val cantidad: Int = 1,
     val nota: String? = null
 )
 
-//Producto Completo
+/**
+ * Combina un producto con sus datos específicos de la lista a la que pertenece
+ */
 data class ProductoCompleto(
     val producto: Product,
     val productoLista: ProductoLista
 )
 
-// Los productos de una subcategoría
+/**
+ * Subcategoría con sus productos
+ */
 data class SubCategoryWithProducts(
     val id: Int,
     val name: String,
     val products: List<Product>
 )
 
-// Los detalles necesarios de un producto
+/**
+ * Información principal del producto
+ */
 data class Product(
     val id: String,
     val slug: String,
@@ -97,7 +119,9 @@ data class Product(
     val price_instructions: PriceInstructions
 )
 
-// Detalles extra del producto
+/**
+ * Instrucciones de precio de un producto
+ */
 data class PriceInstructions(
     val unit_price: String,
     val size_format: String,
@@ -107,21 +131,39 @@ data class PriceInstructions(
     val unit_name: String,
     val pack_size: String,
     val total_units: String,
-    val is_pack: Boolean = false,
+    val is_pack: Boolean = false
 )
 
+/**
+ * Representa un producto con todos los detalles y cómo está en la lista
+ */
 data class ProductoConDetalles(
     val producto: Product,
     val productoLista: ProductoLista
 )
 
+/**
+ * Representa un producto junto a su información de lista y si ha sido añadido
+ */
+data class ProductoCompra(
+    val producto: Product,
+    val productoLista: ProductoLista,
+    val anadido: Boolean = false
+)
+
+/**
+ * Producto dentro de un historial de compra
+ */
 data class ProductoHistorial(
     val productId: String = "",
     val precio: Double = 0.0,
     val cantidad: Int = 0,
-    val nombreProducto: String? = null,
+    val nombreProducto: String? = null
 )
 
+/**
+ * Representa una compra almacenada en el historial
+ */
 data class HistorialCompra(
     val id: String = "",
     val nombre_lista: String = "",

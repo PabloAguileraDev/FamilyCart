@@ -4,13 +4,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pablo.familycart.data.User
-import com.pablo.familycart.models.Product
 import com.pablo.familycart.models.ProductoCompleto
 import com.pablo.familycart.utils.apiUtils.MercadonaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel encargado de manejar los productos dentro de una lista de compras específica.
+ * Obtiene y muestra los productos de las listas.
+ */
 class ProductosListaViewModel(
     savedStateHandle: SavedStateHandle,
     private val user: User
@@ -26,13 +29,18 @@ class ProductosListaViewModel(
     val productos: StateFlow<List<ProductoCompleto>> = _productos
 
     init {
-        cargarProductosDeLista()
+        loadProductosFromList()
     }
 
-    private fun cargarProductosDeLista() {
+    /**
+     * Carga los productos actuales de la lista,
+     * recupera los datos del producto desde la API
+     * y los combina con los datos de cantidad y nota.
+     */
+    private fun loadProductosFromList() {
         viewModelScope.launch {
             try {
-                val productoListas = user.getProductosDeLista(familyId, listId)
+                val productoListas = user.getProductosFromLista(familyId, listId)
 
                 val productosCompletos = productoListas.mapNotNull { productoLista ->
                     val producto = MercadonaRepository.getProductById(productoLista.productId)
@@ -40,6 +48,7 @@ class ProductosListaViewModel(
                         ProductoCompleto(producto = it, productoLista = productoLista)
                     }
                 }
+
                 _productos.value = productosCompletos
 
             } catch (e: Exception) {
@@ -48,17 +57,17 @@ class ProductosListaViewModel(
         }
     }
 
-    fun eliminarProducto(productId: String) {
+    /**
+     * Elimina un producto de una lista.
+     **/
+    fun removeProducto(productId: String) {
         viewModelScope.launch {
             try {
                 user.removeProductFromList(listId, productId)
-                cargarProductosDeLista()
+                loadProductosFromList()
             } catch (e: Exception) {
                 println("Error al eliminar producto: ${e.message}")
             }
         }
     }
-
-
 }
-

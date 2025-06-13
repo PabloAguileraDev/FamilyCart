@@ -20,42 +20,40 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.pablo.familycart.R
-import com.pablo.familycart.components.CustomButton
-import com.pablo.familycart.components.CustomText
-import com.pablo.familycart.components.CustomTextField
-import com.pablo.familycart.components.Footer
-import com.pablo.familycart.components.Header
+import com.pablo.familycart.components.*
 import com.pablo.familycart.navigation.Login
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.PerfilViewModel
 
+/**
+ * Pantalla de perfil del usuario.
+ * Permite ver y editar los datos del usuario, además de cerrar sesión.
+ */
 @Composable
 fun PerfilScreen(
     navController: NavController,
     viewModel: PerfilViewModel = viewModel()
 ) {
     val userData by viewModel.userData.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
     var isEditing by remember { mutableStateOf(false) }
     var showPhotoPicker by remember { mutableStateOf(false) }
-
     var nombre by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    val user = userData
     var fotoSeleccionada by remember { mutableStateOf("account_amarillo") }
 
-    LaunchedEffect(user) {
-        user?.foto?.let { fotoSeleccionada = it }
+    LaunchedEffect(userData) {
+        userData?.foto?.let { fotoSeleccionada = it }
     }
 
     val imageResId = remember(fotoSeleccionada) {
         context.resources.getIdentifier(fotoSeleccionada, "drawable", context.packageName)
     }
-    val availablePhotos = listOf(
-        "account_amarillo","account_verde", "pan", "chocolate", "leche", "zanahoria"
-    )
+
+    val availablePhotos = listOf("account_amarillo", "account_verde", "pan", "chocolate", "leche", "zanahoria")
 
     Column(
         modifier = Modifier
@@ -74,7 +72,6 @@ fun PerfilScreen(
             verticalArrangement = Arrangement.Center
         ) {
             if (userData != null) {
-
                 if (isEditing) {
                     Box(
                         modifier = Modifier
@@ -168,12 +165,12 @@ fun PerfilScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         CustomButton(
                             onClick = { isEditing = false },
-                            text = "Cancelar",
+                            text = "Cancelar"
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
 
+                Spacer(modifier = Modifier.height(16.dp))
                 CustomButton(onClick = { showDialog = true }, text = "Cerrar sesión")
             } else {
                 Text("Cargando usuario...")
@@ -195,23 +192,16 @@ fun PerfilScreen(
             dismissButton = {
                 CustomButton(onClick = { showDialog = false }, text = "Cancelar")
             },
-            title = {
-                CustomText("Cerrar sesión", color = Verde, fontSize = 26.sp)
-            },
-            text = {
-                CustomText("¿Estás seguro de que quieres cerrar sesión?", fontSize = 18.sp)
-            },
+            title = { CustomText("Cerrar sesión", color = Verde, fontSize = 26.sp) },
+            text = { CustomText("¿Estás seguro de que quieres cerrar sesión?", fontSize = 18.sp) },
             containerColor = Color.White
         )
-
     }
 
     if (showPhotoPicker) {
         AlertDialog(
             onDismissRequest = { showPhotoPicker = false },
-            title = {
-                CustomText("Selecciona una foto")
-            },
+            title = { CustomText("Selecciona una foto") },
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -248,9 +238,5 @@ fun PerfilScreen(
             },
             containerColor = Color.White
         )
-
     }
-
 }
-
-

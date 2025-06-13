@@ -4,23 +4,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pablo.familycart.data.User
-import com.pablo.familycart.models.Product
-import com.pablo.familycart.models.ProductoLista
+import com.pablo.familycart.models.ProductoCompra
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class ProductoCompra(
-    val producto: Product,
-    val productoLista: ProductoLista,
-    val anadido: Boolean = false
-)
-
+/**
+ * ViewModel para la pantalla de compra.
+ * Administra el estado de los productos y maneja la lógica de añadir, terminar compra, etc.
+ */
 class CompraViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val user: User
 ) : ViewModel() {
+
     private val _productos = MutableStateFlow<List<ProductoCompra>>(emptyList())
     val productos = _productos.asStateFlow()
 
@@ -31,6 +29,9 @@ class CompraViewModel(
         cargarProductos(familyId.toString(), listId.toString())
     }
 
+    /**
+     * Carga los productos de la lista desde el usuario y los guarda en el estado.
+     */
     fun cargarProductos(familyId: String, listId: String) {
         viewModelScope.launch {
             val lista = user.getProductosDeListaConDetalles(familyId, listId)
@@ -40,7 +41,9 @@ class CompraViewModel(
         }
     }
 
-
+    /**
+     * Marca un producto como añadido en la lista.
+     */
     fun marcarComoAnadido(productId: String) {
         _productos.update { lista ->
             lista.map {
@@ -49,6 +52,9 @@ class CompraViewModel(
         }
     }
 
+    /**
+     * Finaliza la compra: guarda el historial, elimina los productos añadidos y recarga la lista.
+     */
     fun terminarCompra(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val productosComprados = productosAnadidos()
@@ -60,24 +66,18 @@ class CompraViewModel(
 
             val familyId = requireNotNull(savedStateHandle["familyId"]).toString()
             val listId = requireNotNull(savedStateHandle["listId"]).toString()
+            val nombreLista = user.getNombreLista(familyId, listId) ?: "Lista sin nombre"
 
-            // Obtener el nombre de la lista
-            val nombreLista = user.obtenerNombreLista(familyId, listId) ?: "Lista sin nombre"
-
-            // Guardar historial
             user.guardarCompra(familyId, productosComprados, nombreLista)
-
-            // Eliminar productos añadidos de la lista
-            user.eliminarProductosDeLista(familyId, listId, productosComprados)
-
-            // Recargar la lista de productos para actualizar la UI
+            user.removeProductsFromList(familyId, listId, productosComprados)
             cargarProductos(familyId, listId)
 
             onSuccess()
         }
     }
 
-    fun productosAnadidos(): List<ProductoCompra> =_productos.value.filter { it.anadido }
-
-
+    /**
+     * Devuelve la lista de productos que han sido marcados como añadidos.
+     */
+    fun productosAnadidos(): List<ProductoCompra> = _productos.value.filter { it.anadido }
 }

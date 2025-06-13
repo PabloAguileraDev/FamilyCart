@@ -9,13 +9,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.pablo.familycart.R
 import androidx.navigation.NavController
+import com.pablo.familycart.R
 import com.pablo.familycart.navigation.Categorias
 import com.pablo.familycart.navigation.Familia
 import com.pablo.familycart.navigation.Favoritos
 import com.pablo.familycart.navigation.Lista
 
+/**
+ * Pie de página con navegación entre las pantallas principales de la app.
+ *
+ * Muestra 4 íconos: Categorías, Lista, Favoritos y Familia, cada uno redirige a una pantalla distinta.
+ *
+ * @param navController Controlador de navegación de Jetpack Navigation.
+ * @param modifier Permite aplicar estilos externos.
+ * @param home Icono para la navegación a Categorías.
+ * @param cart Icono para la navegación a Lista.
+ * @param heart Icono para la navegación a Favoritos.
+ * @param family Icono para la navegación a Familia.
+ */
 @Composable
 fun Footer(
     navController: NavController,
@@ -32,48 +44,43 @@ fun Footer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        Image(
-            painter = painterResource(id = home),
-            contentDescription = "categorias",
-            modifier = Modifier
-                .size(35.dp)
-                .clickable {
-                    navController.navigate(Categorias)
-                },
-            contentScale = ContentScale.Crop
-        )
+        FooterIcon(resId = home, description = "categorias") {
+            navController.navigate(Categorias)
+        }
 
-        Image(
-            painter = painterResource(id = cart),
-            contentDescription = "lista",
-            modifier = Modifier
-                .size(35.dp)
-                .clickable {
-                    navController.navigate(Lista)
-                },
-            contentScale = ContentScale.Crop
-        )
+        FooterIcon(resId = cart, description = "lista") {
+            navController.navigate(Lista)
+        }
 
-        Image(
-            painter = painterResource(id = heart),
-            contentDescription = "favoritos",
-            modifier = Modifier
-                .size(35.dp)
-                .clickable {
-                    navController.navigate(Favoritos)
-                },
-            contentScale = ContentScale.Crop
-        )
+        FooterIcon(resId = heart, description = "favoritos") {
+            navController.navigate(Favoritos)
+        }
 
-        Image(
-            painter = painterResource(id = family),
-            contentDescription = "familia",
-            modifier = Modifier
-                .size(35.dp)
-                .clickable {
-                    navController.navigate(Familia)
-                },
-            contentScale = ContentScale.Crop
-        )
+        FooterIcon(resId = family, description = "familia") {
+            navController.navigate(Familia)
+        }
     }
+}
+
+/**
+ * Icono individual del footer que navega al destino indicado cuando se hace clic.
+ *
+ * @param resId Ruta de la imagen.
+ * @param description Descripción de la imagen.
+ * @param onClick Acción de navegación.
+ */
+@Composable
+private fun FooterIcon(
+    resId: Int,
+    description: String,
+    onClick: () -> Unit
+) {
+    Image(
+        painter = painterResource(id = resId),
+        contentDescription = description,
+        modifier = Modifier
+            .size(35.dp)
+            .clickable(onClick = onClick),
+        contentScale = ContentScale.Crop
+    )
 }
