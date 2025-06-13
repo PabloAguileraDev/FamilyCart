@@ -21,10 +21,10 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.pablo.familycart.R
 import com.pablo.familycart.components.*
+import com.pablo.familycart.models.ProductoCompra
 import com.pablo.familycart.navigation.Lista
 import com.pablo.familycart.ui.theme.Amarillo
 import com.pablo.familycart.viewModels.CompraViewModel
-import com.pablo.familycart.viewModels.ProductoCompra
 
 /**
  * Pantalla principal de la compra. Muestra los productos añadidos a la lista de compra

@@ -1,5 +1,7 @@
 package com.pablo.familycart.screens
 
+import android.graphics.Paint.Align
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -26,6 +31,7 @@ import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pablo.familycart.R
+import com.pablo.familycart.components.CustomButton
 import com.pablo.familycart.components.CustomText
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
@@ -170,6 +176,8 @@ fun FavoritosScreen(
             }
         }
     }
+
+
 }
 
 /**
@@ -183,90 +191,138 @@ fun FavoritosTabContent(
 ) {
     val favoritos by viewModel.favoritos.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val listasDisponibles by viewModel.listas.collectAsState()
 
-    when {
-        isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Verde)
-            }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var selectedProductId by remember { mutableStateOf<String?>(null) }
+    var showAlreadyExistsDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Verde)
         }
-
-        favoritos.isEmpty() -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CustomText("No hay productos favoritos aún.", fontSize = 20.sp, color = Color.Gray)
-            }
+    } else if (favoritos.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CustomText("No hay productos favoritos aún.", fontSize = 20.sp, color = Color.Gray)
         }
-
-        else -> {
-            LazyColumn {
-                items(favoritos) { producto ->
-                    Row(
+    } else {
+        LazyColumn {
+            items(favoritos) { producto ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate(DetallesProducto(producto.id)) }
+                        .padding(8.dp)
+                        .background(Color.White)
+                        .border(2.dp, Verde, RoundedCornerShape(10.dp))
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Image(
+                        painter = rememberImagePainter(producto.thumbnail),
+                        contentDescription = producto.display_name,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate(DetallesProducto(producto.id)) }
-                            .padding(8.dp)
-                            .background(Color.White)
-                            .border(2.dp, Verde, RoundedCornerShape(10.dp))
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        Image(
-                            painter = rememberImagePainter(producto.thumbnail),
-                            contentDescription = producto.display_name,
-                            modifier = Modifier
-                                .size(100.dp)
-                                .padding(end = 12.dp)
+                            .size(100.dp)
+                            .padding(end = 12.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        CustomText(text = producto.display_name, fontSize = 20.sp)
+                        CustomText(
+                            text = "${producto.packaging} • ${producto.price_instructions.unit_size}${producto.price_instructions.size_format}",
+                            fontSize = 18.sp,
+                            color = Color.Gray
                         )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            CustomText(text = producto.display_name, fontSize = 20.sp)
-
-                            CustomText(
-                                text = "${producto.packaging} • ${producto.price_instructions.unit_size}${producto.price_instructions.size_format}",
-                                fontSize = 18.sp,
-                                color = Color.Gray
-                            )
-
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                                .align(Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                                    .align(Alignment.End),
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(modifier = Modifier.weight(1f)) {
-                                    CustomText(
-                                        text = "${producto.price_instructions.unit_price} €",
-                                        fontSize = 18.sp,
-                                        color = Verde,
-                                        modifier = Modifier.padding(end = 8.dp)
-                                    )
-
-                                    producto.price_instructions.previous_unit_price
-                                        ?.takeIf { it.isNotEmpty() }
-                                        ?.let { previousPrice ->
-                                            CustomText(
-                                                text = "${previousPrice.trim()} €",
-                                                fontSize = 16.sp,
-                                                color = Color.Red,
-                                                style = TextStyle(textDecoration = TextDecoration.LineThrough)
-                                            )
+                                CustomText(
+                                    text = "${producto.price_instructions.unit_price} €",
+                                    fontSize = 18.sp,
+                                    color = Verde,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                Image(
+                                    painter = painterResource(id = R.drawable.add_cart),
+                                    contentDescription = "añadir a la lista",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clickable {
+                                            if (listasDisponibles.isNotEmpty()) {
+                                                selectedProductId = producto.id
+                                                showAddDialog = true
+                                            }
                                         }
-                                }
+                                )
                             }
                         }
                     }
                 }
             }
         }
+
+            if (showAddDialog && selectedProductId != null) {
+                AddProductDialog(
+                    show = showAddDialog,
+                    listas = listasDisponibles,
+                    onDismiss = { showAddDialog = false },
+                    onAdd = { listId, cantidad, nota ->
+                        viewModel.addProductToList(
+                            listId = listId,
+                            productId = selectedProductId!!,
+                            cantidad = cantidad,
+                            nota = nota
+                        ) { result ->
+                            if (result.isSuccess) {
+                                Toast.makeText(context, "Producto añadido correctamente", Toast.LENGTH_SHORT).show()
+                            } else {
+                                val msg = result.exceptionOrNull()?.message ?: ""
+                                if (msg.contains("ya está en la lista", ignoreCase = true)) {
+                                    showAlreadyExistsDialog = true
+                                } else {
+                                    println("Error al añadir: $msg")
+                                }
+                            }
+                        }
+                        showAddDialog = false
+                    }
+                )
+            }
+
+        if (showAlreadyExistsDialog) {
+            AlertDialog(
+                onDismissRequest = { showAlreadyExistsDialog = false },
+                confirmButton = {
+                    CustomButton("Cerrar", onClick = { showAlreadyExistsDialog = false })
+                },
+                title = {
+                    CustomText("Producto ya añadido", color = Verde, fontSize = 28.sp)
+                },
+                text = {
+                    CustomText("Este producto ya está en la lista seleccionada.", fontSize = 22.sp)
+                },
+                containerColor = Color.White
+            )
+        }
     }
 }
+
 
 /**
  * Contenido de la pestaña "Mis compras".
@@ -322,3 +378,5 @@ fun MisComprasTabContent(viewModel: FavoritosViewModel, navController: NavContro
         }
     }
 }
+
+

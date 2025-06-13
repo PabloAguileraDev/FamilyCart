@@ -94,9 +94,14 @@ fun AppNavigation(auth: FirebaseAuth, db: FirebaseFirestore) {
             arguments = listOf(
                 navArgument("compraId") { type = NavType.StringType }
             )
-        ) {
-            DetallesCompraScreen(navController)
+        ) { backStackEntry ->
+            val compraId = backStackEntry.arguments?.getString("compraId") ?: ""
+            val viewModel: DetallesCompraViewModel = viewModel(
+                factory = DetallesCompraViewModelFactory(compraId, User(auth, db))
+            )
+            DetallesCompraScreen(navController, viewModel)
         }
+
     }
 }
 
@@ -148,5 +153,17 @@ class CompraViewModelFactory(
 ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
     override fun <T : ViewModel> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T {
         return CompraViewModel(handle, user) as T
+    }
+}
+
+/**
+ * Factory para DetallesCompraViewModel.
+ */
+class DetallesCompraViewModelFactory(
+    private val compraId: String,
+    private val user: User
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return DetallesCompraViewModel(compraId, user) as T
     }
 }

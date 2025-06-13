@@ -51,8 +51,6 @@ class FamiliaViewModel(
             return
         }
 
-        if (_hasFamily.value == true && _familyData.value != null) return
-
         viewModelScope.launch {
             try {
                 val snapshot = db.collection("users").document(currentUser.uid).get().await()
@@ -70,6 +68,25 @@ class FamiliaViewModel(
             }
         }
     }
+
+    /**
+     * Refresca los datos de la familia
+     */
+    fun refreshFamilyData() {
+        viewModelScope.launch {
+            val currentUser = auth.currentUser ?: return@launch
+            try {
+                val snapshot = db.collection("users").document(currentUser.uid).get().await()
+                val familyId = snapshot.getString("familyId")
+                if (familyId != null) {
+                    cargarDatosFamilia(familyId)
+                }
+            } catch (e: Exception) {
+                Log.e("FamiliaViewModel", "Error refrescando datos de familia", e)
+            }
+        }
+    }
+
 
     /**
      * Carga los datos de la familia por su familyId.

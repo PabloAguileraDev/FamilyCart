@@ -65,12 +65,16 @@ fun ProductosListaScreen(
             CustomButton(
                 text = "Voy a comprar",
                 onClick = {
-                    navController.navigate("compra/$familyId/$listId")
+                    if (productos.isNotEmpty()) {
+                        navController.navigate("compra/$familyId/$listId")
+                    }
                 },
+                enabled = productos.isNotEmpty(), // Deshabilita si no hay productos
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)
             )
+
         }
 
         Box(

@@ -131,14 +131,14 @@ fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
     if (showCreateDialog) {
         CreateFamilyDialog(
             onDismiss = { showCreateDialog = false },
-            onCreated = { viewModel.setHasFamily(true) }
+            viewModel = viewModel
         )
     }
 
     if (showJoinDialog) {
         JoinFamilyDialog(
             onDismiss = { showJoinDialog = false },
-            onJoined = { viewModel.setHasFamily(true) }
+            viewModel = viewModel
         )
     }
 }
@@ -147,7 +147,7 @@ fun NoFamilyUI(navController: NavHostController, viewModel: FamiliaViewModel) {
  * Diálogo para crear una familia con una contraseña.
  */
 @Composable
-fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
+fun CreateFamilyDialog(onDismiss: () -> Unit, viewModel: FamiliaViewModel) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -176,7 +176,8 @@ fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
                         if (result.isSuccess) {
                             Toast.makeText(context, "Familia creada", Toast.LENGTH_SHORT).show()
                             onDismiss()
-                            onCreated()
+                            viewModel.setHasFamily(true)
+                            viewModel.refreshFamilyData()
                         } else {
                             Toast.makeText(context, result.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
                         }
@@ -198,7 +199,7 @@ fun CreateFamilyDialog(onDismiss: () -> Unit, onCreated: () -> Unit) {
  * Diálogo para unirse a una familia mediante código y contraseña.
  */
 @Composable
-fun JoinFamilyDialog(onDismiss: () -> Unit, onJoined: () -> Unit) {
+fun JoinFamilyDialog(onDismiss: () -> Unit,viewModel: FamiliaViewModel) {
     var code by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -226,7 +227,8 @@ fun JoinFamilyDialog(onDismiss: () -> Unit, onJoined: () -> Unit) {
                         if (joinResult.isSuccess) {
                             Toast.makeText(context, "Te has unido a la familia", Toast.LENGTH_SHORT).show()
                             onDismiss()
-                            onJoined()
+                            viewModel.setHasFamily(true)
+                            viewModel.refreshFamilyData()
                         } else {
                             Toast.makeText(context, joinResult.exceptionOrNull()?.message ?: "Error", Toast.LENGTH_LONG).show()
                         }

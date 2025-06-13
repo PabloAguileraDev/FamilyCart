@@ -120,7 +120,8 @@ fun CustomTextField(
 fun CustomButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
@@ -128,7 +129,8 @@ fun CustomButton(
             .defaultMinSize(minWidth = 150.dp)
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(Verde)
+        colors = ButtonDefaults.buttonColors(Verde),
+        enabled = enabled
     ) {
         Text(
             text = text,

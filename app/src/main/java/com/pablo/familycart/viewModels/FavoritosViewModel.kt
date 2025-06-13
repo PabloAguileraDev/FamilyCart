@@ -1,9 +1,11 @@
 package com.pablo.familycart.viewModels
 
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.pablo.familycart.data.User
 import com.pablo.familycart.models.HistorialCompra
 import com.pablo.familycart.models.Product
 import com.pablo.familycart.models.ProductoHistorial
@@ -17,6 +19,7 @@ class FavoritosViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : ViewModel() {
+    val user = User(auth, db)
 
     private val _favoritos = MutableStateFlow<List<Product>>(emptyList())
     val favoritos: StateFlow<List<Product>> = _favoritos
@@ -26,6 +29,16 @@ class FavoritosViewModel(
 
     private val _historial = MutableStateFlow<List<HistorialCompra>>(emptyList())
     val historial: StateFlow<List<HistorialCompra>> = _historial
+
+    private val _listas = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+    val listas: StateFlow<List<Pair<String, String>>> = _listas
+
+    private val _productosDeListas = MutableStateFlow<Map<String, List<String>>>(emptyMap())
+    val productosDeListas: StateFlow<Map<String, List<String>>> = _productosDeListas
+
+    init {
+        loadListas()
+    }
 
     /**
      * Carga la lista de productos favoritos para la familia indicada.
@@ -109,6 +122,63 @@ class FavoritosViewModel(
                 e.printStackTrace()
                 _historial.value = emptyList()
             }
+        }
+    }
+
+    /**
+     * Carga las listas de la familia
+     */
+    private fun loadListas() {
+        viewModelScope.launch {
+            val listasResult = user.getUserLists()
+            _listas.value = listasResult.getOrNull() ?: emptyList()
+
+            loadProductosDeListas()
+        }
+    }
+
+    /**
+     * Carga los productos de las listas
+     */
+    fun loadProductosDeListas() {
+        viewModelScope.launch {
+            val listasIds = _listas.value.map { it.first }
+            val resultMap = mutableMapOf<String, List<String>>()
+
+            for (listId in listasIds) {
+                try {
+                    val snapshot = db.collection("listas")
+                        .document(listId)
+                        .collection("productos")
+                        .get()
+                        .await()
+
+                    val productos = snapshot.documents.mapNotNull { it.getString("productId") }
+                    resultMap[listId] = productos
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    resultMap[listId] = emptyList()
+                }
+            }
+
+            _productosDeListas.value = resultMap
+        }
+    }
+
+
+    /**
+     * Añade un producto a una lista.
+     */
+    fun addProductToList(
+        listId: String,
+        productId: String,
+        nota: String,
+        cantidad: Int,
+        onResult: (Result<Unit>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = user.addProductToList(listId, productId, nota, cantidad)
+            onResult(result)
         }
     }
 }

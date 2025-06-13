@@ -30,7 +30,10 @@ import com.pablo.familycart.viewModels.DetallesCompraViewModel
  * Pantalla que muestra los detalles de una compra previamente realizada.
  */
 @Composable
-fun DetallesCompraScreen(navController: NavController, viewModel: DetallesCompraViewModel = viewModel()) {
+fun DetallesCompraScreen(
+    navController: NavController,
+    viewModel: DetallesCompraViewModel
+) {
     val compra by viewModel.compra.collectAsState()
     var showContent by remember { mutableStateOf(false) }
 
