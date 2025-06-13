@@ -8,8 +8,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.pablo.familycart.R
 
-val McLaren = FontFamily(Font(R.font.mclaren_regular, FontWeight.Normal))
-
 val Typography = Typography(
     headlineMedium = TextStyle(
         fontSize = 26.sp,
@@ -23,5 +21,4 @@ val Typography = Typography(
         fontSize = 12.sp,
         fontWeight = FontWeight.Normal
     )
-    // Podés seguir agregando más si querés
 )

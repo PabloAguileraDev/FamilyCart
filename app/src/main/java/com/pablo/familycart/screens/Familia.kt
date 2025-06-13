@@ -49,7 +49,7 @@ import com.pablo.familycart.components.CustomTextField
 import com.pablo.familycart.components.CustomTitulo
 import com.pablo.familycart.components.Footer
 import com.pablo.familycart.components.Header
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import com.pablo.familycart.ui.theme.Verde
 import com.pablo.familycart.viewModels.FamiliaViewModel
 import kotlinx.coroutines.CoroutineScope

@@ -3,7 +3,7 @@ package com.pablo.familycart.viewModels
 import android.os.Bundle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import com.pablo.familycart.models.Product
 import com.pablo.familycart.utils.apiUtils.MercadonaRepository
 import kotlinx.coroutines.flow.MutableStateFlow

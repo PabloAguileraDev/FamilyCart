@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import kotlinx.coroutines.launch
 
 /**
@@ -78,12 +78,11 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore) : ViewModel()
         password: String,
         confirmPassword: String
     ): Pair<Boolean, String> {
-
         nombreError = nombre.isBlank()
         apellidosError = apellidos.isBlank()
         emailError = !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
         passwordError = password.length < 8 ||
-                !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$"))
+                !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d])[A-Za-z\\d\\S]{8,}\$"))
         confirmPasswordError = password != confirmPassword
 
         return when {
@@ -109,7 +108,7 @@ class RegistroViewModel(auth: FirebaseAuth, db: FirebaseFirestore) : ViewModel()
     }
 
     fun validarPassword() {
-        passwordError = !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$"))
+        passwordError = !password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d])[A-Za-z\\d\\S]{8,}\$"))
     }
 
     fun validarConfirmPassword() {

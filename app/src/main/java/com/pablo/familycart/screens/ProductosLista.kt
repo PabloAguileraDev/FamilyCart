@@ -69,7 +69,7 @@ fun ProductosListaScreen(
                         navController.navigate("compra/$familyId/$listId")
                     }
                 },
-                enabled = productos.isNotEmpty(), // Deshabilita si no hay productos
+                enabled = productos.isNotEmpty(),
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)

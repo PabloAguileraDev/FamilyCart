@@ -1,11 +1,10 @@
 package com.pablo.familycart.viewModels
 
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import com.pablo.familycart.models.HistorialCompra
 import com.pablo.familycart.models.Product
 import com.pablo.familycart.models.ProductoHistorial

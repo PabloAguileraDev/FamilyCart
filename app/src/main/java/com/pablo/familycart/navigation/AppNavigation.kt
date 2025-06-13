@@ -11,7 +11,7 @@ import androidx.navigation.navArgument
 import androidx.savedstate.SavedStateRegistryOwner
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import com.pablo.familycart.screens.*
 import com.pablo.familycart.viewModels.*
 
@@ -73,9 +73,13 @@ fun AppNavigation(auth: FirebaseAuth, db: FirebaseFirestore) {
                 navArgument("productoId") { type = NavType.StringType },
                 navArgument("listId") { type = NavType.StringType }
             )
-        ) {
-            DetallesProductoListaScreen(navController)
+        ) { backStackEntry ->
+            val viewModel: DetallesProductoListaViewModel = viewModel(
+                factory = DetallesProductoListaViewModelFactory(User(auth, db), backStackEntry, backStackEntry.arguments)
+            )
+            DetallesProductoListaScreen(navController = navController, viewModel = viewModel)
         }
+
         composable(
             route = "compra/{familyId}/{listId}",
             arguments = listOf(
@@ -155,6 +159,24 @@ class CompraViewModelFactory(
         return CompraViewModel(handle, user) as T
     }
 }
+
+/**
+ * Factory para DetallesProductoListaViewModel.
+ */
+class DetallesProductoListaViewModelFactory(
+    private val user: User,
+    owner: SavedStateRegistryOwner,
+    defaultArgs: Bundle? = null
+) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
+    override fun <T : ViewModel> create(
+        key: String,
+        modelClass: Class<T>,
+        handle: SavedStateHandle
+    ): T {
+        return DetallesProductoListaViewModel(handle, user) as T
+    }
+}
+
 
 /**
  * Factory para DetallesCompraViewModel.

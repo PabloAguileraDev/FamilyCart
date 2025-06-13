@@ -3,7 +3,7 @@ package com.pablo.familycart.viewModels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pablo.familycart.data.User
+import com.pablo.familycart.utils.firebaseUtils.User
 import com.pablo.familycart.models.ProductoCompra
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
